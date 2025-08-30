@@ -20,6 +20,13 @@ export default function Navbar() {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
+    const navLinks = [
+        { href: "#features", label: "Features" },
+        { href: "#architecture", label: "Architecture" },
+        { href: "#technology", label: "Technology" },
+        { href: "#vision", label: "Vision" },
+    ];
+
     return (
         <motion.nav 
             className="sticky top-0 z-50 backdrop-blur-md bg-black/60 border-b border-white/10"
@@ -54,19 +61,29 @@ export default function Navbar() {
                     </div>
                 </button>
                 <ul className="hidden md:flex gap-8 text-sm font-medium">
-                    <li><Link href="#features" className="hover:text-indigo-300 transition-colors">Features</Link></li>
-                    <li><Link href="#architecture" className="hover:text-indigo-300 transition-colors">Architecture</Link></li>
-                    <li><Link href="#outputs" className="hover:text-indigo-300 transition-colors">Outputs</Link></li>
-                    <li><Link href="#vision" className="hover:text-indigo-300 transition-colors">Vision</Link></li>
+                    {navLinks.map(l => (
+                        <li key={l.href}>
+                            <Link href={l.href} className="hover:text-indigo-300 transition-colors">
+                                {l.label}
+                            </Link>
+                        </li>
+                    ))}
                 </ul>
             </div>
             {open && (
                 <div className="md:hidden border-t border-white/10 px-4 pb-4">
                     <ul className="flex flex-col gap-3 pt-3 text-sm">
-                        <li><Link href="#features" onClick={() => setOpen(false)} className="block px-1 py-1 rounded hover:bg-white/10">Features</Link></li>
-                        <li><Link href="#architecture" onClick={() => setOpen(false)} className="block px-1 py-1 rounded hover:bg-white/10">Architecture</Link></li>
-                        <li><Link href="#outputs" onClick={() => setOpen(false)} className="block px-1 py-1 rounded hover:bg-white/10">Outputs</Link></li>
-                        <li><Link href="#vision" onClick={() => setOpen(false)} className="block px-1 py-1 rounded hover:bg-white/10">Vision</Link></li>
+                        {navLinks.map(l => (
+                            <li key={l.href}>
+                                <Link
+                                    href={l.href}
+                                    onClick={() => setOpen(false)}
+                                    className="block px-1 py-1 rounded hover:bg-white/10"
+                                >
+                                    {l.label}
+                                </Link>
+                            </li>
+                        ))}
                     </ul>
                 </div>
             )}

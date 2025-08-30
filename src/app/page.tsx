@@ -2,6 +2,9 @@ import FeaturesSection from "@/components/FeaturesSection";
 import FunctionalitiesSection from "@/components/FunctionalitiesSection";
 import HeroSection from "@/components/HeroSection";
 import HighlightedSection from "@/components/HighlightedSection";
+import AIProcessingPipeline from "@/components/AIProcessingPipeline";
+import DIPWorkflowSection from "@/components/DIPWorkflowSection";
+import ContactUs from "@/components/ContactUs";
 
 export default function Home() {
   return (
@@ -10,6 +13,9 @@ export default function Home() {
       <FeaturesSection />
       <FunctionalitiesSection />
       <HighlightedSection />
+      <AIProcessingPipeline />
+      <DIPWorkflowSection />
+      <ContactUs />
     </main>
   );
 }

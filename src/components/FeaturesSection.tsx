@@ -43,15 +43,35 @@ export default function FeaturesSection() {
   const isInView = useInView(sectionRef, { once: false, margin: "-100px" });
 
   return (
-    <motion.section 
-      id="features" 
-      className="relative min-h-screen py-24"
+    <motion.section
+      className="relative min-h-screen py-24 px-4 min-w-[72vw]"
       ref={sectionRef}
       initial={{ opacity: 0, y: 50 }}
       animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
       transition={{ duration: 0.8, ease: [0.25, 0.4, 0.25, 1] }}
     >
-      <div className="mx-auto max-w-[80vw] px-6">
+      <div className="absolute inset-0 opacity-10">
+        <svg className="w-full h-full" viewBox="0 0 1000 1000" fill="none">
+          <defs>
+            <pattern id="circuit" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
+              <path d="M10 10h80v80h-80z" stroke="url(#grad)" strokeWidth="1" fill="none"/>
+              <circle cx="10" cy="10" r="2" fill="url(#grad)"/>
+              <circle cx="90" cy="10" r="2" fill="url(#grad)"/>
+              <circle cx="10" cy="90" r="2" fill="url(#grad)"/>
+              <circle cx="90" cy="90" r="2" fill="url(#grad)"/>
+              <path d="M10 50h30m30 0h30" stroke="url(#grad)" strokeWidth="1"/>
+              <path d="M50 10v30m0 30v30" stroke="url(#grad)" strokeWidth="1"/>
+            </pattern>
+            <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#6366f1"/>
+              <stop offset="100%" stopColor="#8b5cf6"/>
+            </linearGradient>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#circuit)"/>
+        </svg>
+      </div>
+
+      <div className="mx-auto px-6">
         <motion.h2 
           className="text-3xl md:text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-300 to-indigo-500 mb-14 text-center"
           initial={{ opacity: 0, y: 30 }}

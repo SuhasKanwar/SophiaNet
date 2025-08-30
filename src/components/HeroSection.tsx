@@ -17,7 +17,7 @@ export default function HeroSection() {
   const pathLengthFifth = useTransform(scrollYProgress, [0, 0.8], [0, 1.2]);
 
   return (
-    <header id="home" ref={ref} className="relative h-[260vh] md:h-[220vh] w-full overflow-clip ">
+    <header ref={ref} className="relative h-[260vh] md:h-[220vh] w-full overflow-clip ">
       <GoogleGeminiEffect
         pathLengths={[
           pathLengthFirst,
