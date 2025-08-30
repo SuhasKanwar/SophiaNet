@@ -1,4 +1,9 @@
+"use client";
+
 import { CometCard } from "@/components/ui/comet-card";
+import Image from "next/image";
+import { motion, useInView } from "motion/react";
+import { useRef } from "react";
 
 const features = [
   {
@@ -34,31 +39,69 @@ const features = [
 ];
 
 export default function FeaturesSection() {
+  const sectionRef = useRef(null);
+  const isInView = useInView(sectionRef, { once: false, margin: "-100px" });
+
   return (
-    <section id="features" className="relative min-h-screen py-24">
-      <div className="mx-auto max-w-7xl px-6">
-        <h2 className="text-3xl md:text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-300 to-indigo-500 mb-14 text-center">Core Capabilities</h2>
-        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3 place-items-center">
-          {features.map(f => (
-            <CometCard key={f.title}>
-              <div className="flex w-80 flex-col rounded-2xl bg-[#1F2121] p-3 md:p-4 shadow-lg/30">
-                <div className="relative aspect-[3/2] w-full overflow-hidden rounded-xl">
-                  <img
-                    src={f.img}
-                    alt={f.title}
-                    loading="lazy"
-                    className="absolute inset-0 h-full w-full object-cover contrast-110 saturate-110 opacity-90"
-                  />
+    <motion.section 
+      id="features" 
+      className="relative min-h-screen py-24"
+      ref={sectionRef}
+      initial={{ opacity: 0, y: 50 }}
+      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
+      transition={{ duration: 0.8, ease: [0.25, 0.4, 0.25, 1] }}
+    >
+      <div className="mx-auto max-w-[80vw] px-6">
+        <motion.h2 
+          className="text-3xl md:text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-300 to-indigo-500 mb-14 text-center"
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          Core Capabilities
+        </motion.h2>
+        <motion.div 
+          className="grid gap-10 md:grid-cols-2 lg:grid-cols-3 place-items-center"
+          initial={{ opacity: 0 }}
+          animate={isInView ? { opacity: 1 } : { opacity: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          {features.map((f, index) => (
+            <motion.div
+              key={f.title}
+              initial={{ opacity: 0, y: 50, scale: 0.9 }}
+              animate={isInView ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 50, scale: 0.9 }}
+              transition={{ 
+                duration: 0.6, 
+                delay: 0.6 + index * 0.1,
+                ease: [0.25, 0.4, 0.25, 1]
+              }}
+              whileHover={{ 
+                y: -10, 
+                transition: { duration: 0.3 } 
+              }}
+            >
+              <CometCard>
+                <div className="flex w-80 flex-col rounded-2xl bg-[#1F2121] p-3 md:p-4 shadow-lg/30">
+                  <div className="relative aspect-[3/2] w-full overflow-hidden rounded-xl">
+                    <Image
+                      fill
+                      src={f.img}
+                      alt={f.title}
+                      loading="lazy"
+                      className="absolute inset-0 h-full w-full object-cover contrast-110 saturate-110 opacity-90"
+                    />
+                  </div>
+                  <div className="mt-5 flex-1 flex flex-col">
+                    <h3 className="text-lg font-semibold text-white mb-2 tracking-wide">{f.title}</h3>
+                    <p className="text-sm text-neutral-300 leading-relaxed">{f.body}</p>
+                  </div>
                 </div>
-                <div className="mt-5 flex-1 flex flex-col">
-                  <h3 className="text-lg font-semibold text-white mb-2 tracking-wide">{f.title}</h3>
-                  <p className="text-sm text-neutral-300 leading-relaxed">{f.body}</p>
-                </div>
-              </div>
-            </CometCard>
+              </CometCard>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
-    </section>
+    </motion.section>
   );
 }

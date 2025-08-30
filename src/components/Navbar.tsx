@@ -1,11 +1,36 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { motion, useScroll, useTransform } from "motion/react";
 
 export default function Navbar() {
     const [open, setOpen] = useState(false);
+    const { scrollY } = useScroll();
+    const [isScrolled, setIsScrolled] = useState(false);
+    
+    const navbarOpacity = useTransform(scrollY, [0, 100], [0.6, 0.95]);
+    const navbarBlur = useTransform(scrollY, [0, 100], [8, 16]);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            setIsScrolled(window.scrollY > 50);
+        };
+        
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
     return (
-        <nav className="sticky top-0 z-50 backdrop-blur-md bg-black/60 border-b border-white/10">
+        <motion.nav 
+            className="sticky top-0 z-50 backdrop-blur-md bg-black/60 border-b border-white/10"
+            style={{ 
+                backdropFilter: `blur(${navbarBlur}px)`,
+                backgroundColor: `rgba(0, 0, 0, ${navbarOpacity})`
+            }}
+            initial={{ y: -100 }}
+            animate={{ y: 0 }}
+            transition={{ duration: 0.5, ease: [0.25, 0.4, 0.25, 1] }}
+        >
             <div className="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between">
                 <Link href="#home" className="font-extrabold tracking-tight text-lg md:text-xl">
                     Sophia<span className="text-indigo-400">Net</span>
@@ -45,6 +70,6 @@ export default function Navbar() {
                     </ul>
                 </div>
             )}
-        </nav>
+        </motion.nav>
     );
 }
