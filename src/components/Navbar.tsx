@@ -188,7 +188,7 @@ export default function Navbar() {
                                                     <button
                                                         onClick={() => {
                                                             setUserMenuOpen(false);
-                                                            showToast({ type: "warning", title: "Signing out", message: "Ending session..." });
+                                                            showToast({ type: "warning", title: "Signing out", message: "Ending session" });
                                                             signOut({ callbackUrl: "/" });
                                                         }}
                                                         className="group relative w-full overflow-hidden rounded-md px-4 py-2.5 text-sm font-medium bg-gradient-to-r from-indigo-500/70 to-purple-500/70 hover:from-indigo-500 hover:to-purple-500 border border-white/10 transition"

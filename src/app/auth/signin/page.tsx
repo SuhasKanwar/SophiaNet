@@ -72,7 +72,7 @@ export default function SignInPage() {
                                 whileTap={{ scale: 0.95 }}
                                 whileHover={{ y: -2 }}
                                 onClick={() => {
-                                    showToast({ type: "info", title: "Redirecting", message: "To Google for authentication..." });
+                                    showToast({ type: "info", title: "Redirecting", message: "To Google for authentication" });
                                     signIn("google", { callbackUrl: "/" });
                             }}
                                 className="w-full group relative overflow-hidden rounded-lg border border-white/15 bg-white/5 px-4 py-3 flex items-center justify-center gap-3 text-sm font-medium text-white transition"
