@@ -1,9 +1,12 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, useScroll, useTransform } from "motion/react";
+import { useSession } from "next-auth/react";
 
 export default function Navbar() {
+    const { data: session } = useSession();
     const [open, setOpen] = useState(false);
     const { scrollY } = useScroll();
     const [isScrolled, setIsScrolled] = useState(false);
