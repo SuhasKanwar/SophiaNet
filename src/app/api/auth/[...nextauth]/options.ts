@@ -1,5 +1,6 @@
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+import { prisma } from "@/lib/prisma";
 
 export const authOptions: NextAuthOptions = {
     providers: [
@@ -21,6 +22,24 @@ export const authOptions: NextAuthOptions = {
         })
     ],
     callbacks: {
+        async signIn({ user }) {
+            if (!user?.id) return false;
+            await prisma.user.upsert({
+                where: { id: user.id },
+                update: {
+                    name: user.name,
+                    email: user.email,
+                    image: user.image
+                },
+                create: {
+                    id: user.id,
+                    name: user.name ?? "",
+                    email: user.email,
+                    image: user.image
+                }
+            });
+            return true;
+        },
         async jwt({ token, user }) {
             if (user) {
                 token.id = user.id?.toString();
@@ -29,7 +48,7 @@ export const authOptions: NextAuthOptions = {
         },
         async session({ session, token }) {
             if (token) {
-                session.user.id = token.id;
+                (session.user as any).id = token.id;
             }
             return session;
         }
