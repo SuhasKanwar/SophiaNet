@@ -29,22 +29,22 @@ export default function Footer() {
               <h4 className="mb-3 font-medium text-neutral-200">Explore</h4>
               <ul className="space-y-2">
                 <li>
-                  <a
+                  <Link
                     href="#vision"
                     className="relative inline-block text-neutral-400 transition hover:text-indigo-300
                                after:absolute after:left-0 after:bottom-0 after:h-px after:w-0 after:bg-gradient-to-r after:from-indigo-500 after:to-purple-500 after:transition-all after:duration-300 hover:after:w-full"
                   >
                     Vision
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
+                  <Link
                     href="#features"
                     className="relative inline-block text-neutral-400 transition hover:text-indigo-300
                                after:absolute after:left-0 after:bottom-0 after:h-px after:w-0 after:bg-gradient-to-r after:from-indigo-500 after:to-purple-500 after:transition-all after:duration-300 hover:after:w-full"
                   >
                     Features
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>

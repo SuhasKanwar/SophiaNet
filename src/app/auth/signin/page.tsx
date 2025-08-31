@@ -32,7 +32,6 @@ export default function SignInPage() {
 
     return (
         <main className="relative min-h-[calc(100vh-80px)] flex items-center justify-center px-4 py-24">
-            {/* Ambient background */}
             <div className="pointer-events-none absolute inset-0 overflow-hidden">
                 <motion.div
                     className="absolute -top-32 -left-20 w-[38rem] h-[38rem] rounded-full bg-gradient-to-br from-indigo-600/25 via-purple-600/20 to-cyan-500/25 blur-3xl"

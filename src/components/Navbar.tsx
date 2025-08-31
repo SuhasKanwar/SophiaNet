@@ -58,11 +58,12 @@ export default function Navbar() {
         };
     }, []);
 
-    const navLinks = [
+    const NAV_LINKS = [
         { href: "#features", label: "Features" },
-        { href: "#architecture", label: "Architecture" },
-        { href: "#technology", label: "Technology" },
-        { href: "#vision", label: "Vision" },
+        { href: "#functionalities", label: "Functionalities" },
+        { href: "#ai-processing-pipeline", label: "AI" },
+        { href: "#dip-workflow", label: "DIP" },
+        { href: "#contact-us", label: "Contact" }
     ];
 
     return (
@@ -77,7 +78,7 @@ export default function Navbar() {
             transition={{ duration: 0.5, ease: [0.25, 0.4, 0.25, 1] }}
         >
             <div className="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between">
-                <Link href="/" className="font-extrabold tracking-tight text-lg md:text-xl">
+                <Link href="/#top" className="font-extrabold tracking-tight text-lg md:text-xl">
                     Sophia<span className="text-indigo-400">Net</span>
                 </Link>
                 <button
@@ -99,7 +100,7 @@ export default function Navbar() {
                     </div>
                 </button>
                 <ul className="hidden md:flex gap-8 text-sm font-medium">
-                    {navLinks.map(l => (
+                    {NAV_LINKS.map(l => (
                         <li key={l.href}>
                             <Link href={l.href} className="hover:text-indigo-300 transition-colors">
                                 {l.label}
@@ -187,7 +188,7 @@ export default function Navbar() {
                                                     <button
                                                         onClick={() => {
                                                             setUserMenuOpen(false);
-                                                            showToast({ type: "info", title: "Signing out", message: "Ending session..." });
+                                                            showToast({ type: "warning", title: "Signing out", message: "Ending session..." });
                                                             signOut({ callbackUrl: "/" });
                                                         }}
                                                         className="group relative w-full overflow-hidden rounded-md px-4 py-2.5 text-sm font-medium bg-gradient-to-r from-indigo-500/70 to-purple-500/70 hover:from-indigo-500 hover:to-purple-500 border border-white/10 transition"
@@ -213,7 +214,7 @@ export default function Navbar() {
             {open && (
                 <div className="md:hidden border-t border-white/10 px-4 pb-4">
                     <ul className="flex flex-col gap-3 pt-3 text-sm">
-                        {navLinks.map(l => (
+                        {NAV_LINKS.map(l => (
                             <li key={l.href}>
                                 <Link
                                     href={l.href}

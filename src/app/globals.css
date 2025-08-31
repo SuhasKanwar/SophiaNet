@@ -144,6 +144,12 @@
   scrollbar-color: #8b48f8 #000000;
 }
 
-button, a {
+button,
+a {
   cursor: pointer;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 10px;
 }
