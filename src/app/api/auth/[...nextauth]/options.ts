@@ -7,12 +7,15 @@ export const authOptions: NextAuthOptions = {
             clientId: process.env.GOOGLE_CLIENT_ID!,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
             profile(profile) {
+                if (!profile || !profile.sub) {
+                    throw new Error("Google profile 'sub' (id) missing");
+                }
                 return {
-                    id: profile.id,
+                    id: profile.sub,
                     name: profile.name,
                     email: profile.email,
                     image: profile.picture,
-                }
+                };
             },
             allowDangerousEmailAccountLinking: true
         })
@@ -38,4 +41,4 @@ export const authOptions: NextAuthOptions = {
         strategy: 'jwt'
     },
     secret: process.env.NEXTAUTH_SECRET
-}
+};
