@@ -13,20 +13,20 @@ export default function Home() {
       <section id="hero" className="w-full">
         <HeroSection />
       </section>
-      <section id="features" className="w-full">
+      <section id="features">
         <FeaturesSection />
       </section>
-      <section id="functionalities" className="w-full">
+      <section id="functionalities">
         <FunctionalitiesSection />
       </section>
       <HighlightedSection />
-      <section id="ai-processing-pipeline" className="w-full">
+      <section id="ai-processing-pipeline">
         <AIProcessingPipeline />
       </section>
-      <section id="dip-workflow" className="w-full">
+      <section id="dip-workflow">
         <DIPWorkflowSection />
       </section>
-      <section id="contact-us" className="w-full">
+      <section id="contact-us">
         <ContactUs />
       </section>
       <MoveTopButton />
