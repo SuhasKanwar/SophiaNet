@@ -1,8 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion, useInView } from 'motion/react';
-import { useRef } from 'react';
 import { 
   ChevronDownIcon, 
   ChevronRightIcon,
@@ -12,6 +11,7 @@ import {
   Cog6ToothIcon,
   PresentationChartLineIcon
 } from '@heroicons/react/24/outline';
+import { AnimatedImageDemo, AnimatedVideoDemo, InteractivePipelineDemo, OrchestrationNetworkDemo, OutputShowcaseDemo } from './FunctionalityDemos';
 
 interface Functionality {
   id: string;
@@ -20,7 +20,7 @@ interface Functionality {
   description: string;
   icon: React.ComponentType<{ className?: string }>;
   demonstration: {
-    type: 'video' | 'image' | 'interactive';
+    type: 'video' | 'image' | 'interactive' | 'network' | 'showcase';
     content: string;
     alt?: string;
   };
@@ -70,9 +70,9 @@ const functionalities: Functionality[] = [
     description: 'Experience the power of our specialized agent ecosystem: Crawler Agent for content collection, Notes Agent for OCR and formatting, Embedding Agent for feature extraction, Generation Agent for creative outputs, Analysis Agent for insights, and Orchestrator Agent for seamless coordination.',
     icon: Cog6ToothIcon,
     demonstration: {
-      type: 'interactive',
-      content: 'Agent orchestration workflow',
-      alt: 'Interactive agent orchestration demonstration'
+      type: 'network',
+      content: 'Autonomous agents mesh',
+      alt: 'Dynamic agent coordination'
     }
   },
   {
@@ -82,9 +82,9 @@ const functionalities: Functionality[] = [
     description: 'Receive beautifully formatted digitized notes, AI-generated educational videos, optimized thumbnails and posters, cross-modal semantic search capabilities, and real-time trend monitoring dashboards. All outputs are designed to maximize engagement and knowledge retention.',
     icon: PresentationChartLineIcon,
     demonstration: {
-      type: 'image',
-      content: '/api/placeholder/600/400',
-      alt: 'Smart output delivery showcase'
+      type: 'showcase',
+      content: 'Output artifacts carousel',
+      alt: 'Showcase of generated knowledge assets'
     }
   }
 ];
@@ -102,50 +102,18 @@ export default function FunctionalitiesSection() {
   };
 
   const renderDemonstration = () => {
-    switch (selectedDemo.demonstration.type) {
+    const { heading, demonstration } = selectedDemo;
+    switch (demonstration.type) {
       case 'image':
-        return (
-          <div className="w-full h-full bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl flex items-center justify-center border border-gray-700">
-            <div className="text-center p-8">
-              <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <h3 className="text-2xl font-semibold text-white mb-3">{selectedDemo.heading}</h3>
-              <p className="text-gray-300 text-lg">{selectedDemo.demonstration.alt}</p>
-            </div>
-          </div>
-        );
+        return <AnimatedImageDemo title={heading} alt={demonstration.alt} />;
       case 'video':
-        return (
-          <div className="w-full h-full bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl flex items-center justify-center border border-gray-700">
-            <div className="text-center p-8">
-              <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center">
-                <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h3 className="text-2xl font-semibold text-white mb-3">{selectedDemo.heading}</h3>
-              <p className="text-gray-300 text-lg">{selectedDemo.demonstration.alt}</p>
-            </div>
-          </div>
-        );
+        return <AnimatedVideoDemo title={heading} alt={demonstration.alt} />;
       case 'interactive':
-        return (
-          <div className="w-full h-full bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl flex items-center justify-center border border-gray-700">
-            <div className="text-center p-8">
-              <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center animate-pulse">
-                <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </div>
-              <h3 className="text-2xl font-semibold text-white mb-3">{selectedDemo.heading}</h3>
-              <p className="text-gray-300 text-lg">{selectedDemo.demonstration.content}</p>
-            </div>
-          </div>
-        );
+        return <InteractivePipelineDemo title={heading} content={demonstration.content} />;
+      case 'network':
+        return <OrchestrationNetworkDemo title={heading} alt={demonstration.alt} />;
+      case 'showcase':
+        return <OutputShowcaseDemo title={heading} alt={demonstration.alt} />;
       default:
         return null;
     }
@@ -251,18 +219,21 @@ export default function FunctionalitiesSection() {
             animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 50 }}
             transition={{ duration: 0.8, delay: 0.5 }}
           >
-            <div className="bg-gray-800/30 border border-gray-700 rounded-xl shadow-xl overflow-hidden">
-              <div className="p-6 border-b border-gray-700">
+            <div className="bg-gray-800/30 border border-gray-700 rounded-xl shadow-xl overflow-hidden relative">
+              <motion.div
+                className="pointer-events-none absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_70%_30%,rgba(56,189,248,0.15),transparent_70%)]"
+                animate={{ opacity: [0.2, 0.5, 0.2] }}
+                transition={{ duration: 10, repeat: Infinity }}
+              />
+              <div className="p-6 border-b border-gray-700 relative">
                 <h3 className="text-2xl font-semibold text-white">
                   {selectedDemo.subHeading}
                 </h3>
               </div>
-              
-              <div className="aspect-video p-8">
+              <div className="aspect-video p-4 md:p-6 relative">
                 {renderDemonstration()}
               </div>
-              
-              <div className="p-6 bg-gray-900/30">
+              <div className="p-6 bg-gray-900/40 relative backdrop-blur-sm">
                 <h4 className="font-semibold text-white mb-3 text-lg">
                   Featured Capability: {selectedDemo.heading}
                 </h4>
