@@ -60,8 +60,7 @@ export function ToolButton({ item, expanded }: ToolButtonProps) {
     <button
       onClick={(e) => {
         e.stopPropagation();
-        // TODO: Implement proper routing
-        console.log("Navigate to:", item.link);
+        router.push(item.link);
       }}
       className={`group relative flex items-center w-full rounded-lg px-2 py-2 text-sm transition-colors ${
         active
@@ -121,8 +120,7 @@ export function ChatItem({
       <div className="group/chat relative flex justify-center px-1">
         <button
           onClick={() => {
-            // TODO: Implement chat navigation
-            console.log("Navigate to chat:", chat.id);
+            router.push(`/chatbot/c/${chat.id}`);
           }}
           className="w-full flex items-center justify-center"
         >
@@ -149,8 +147,7 @@ export function ChatItem({
         onClick={(e) => {
           e.stopPropagation();
           if (!isEditing) {
-            // TODO: Implement chat navigation
-            console.log("Navigate to chat:", chat.id);
+            router.push(`/chatbot/c/${chat.id}`);
           }
         }}
         className="flex items-center gap-2 flex-1 px-2 py-2 text-left"

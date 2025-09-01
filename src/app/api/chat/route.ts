@@ -6,7 +6,7 @@ import { sendMessageSchema, getMessagesSchema, deleteMessageSchema } from "@/lib
 export async function GET(request: Request) {
     const session = await getServerSession(authOptions);
     const user: User | null = session?.user || null;
-    if(!session || !session.user) {
+    if (!session || !session.user) {
         return Response.json(
             {
                 success: false,
@@ -21,7 +21,7 @@ export async function GET(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
         const conversationId = searchParams.get('conversationId');
-        
+
         if (!conversationId) {
             return Response.json(
                 {
@@ -66,6 +66,7 @@ export async function GET(request: Request) {
 
         return Response.json({
             success: true,
+            message: "Messages retrieved successfully",
             data: messages
         });
     }
@@ -96,7 +97,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
     const session = await getServerSession(authOptions);
     const user: User | null = session?.user || null;
-    if(!session || !session.user) {
+    if (!session || !session.user) {
         return Response.json(
             {
                 success: false,
@@ -139,17 +140,16 @@ export async function POST(request: Request) {
             }
         });
 
-        // Update conversation's lastUpdated and unarchive if archived
         await prisma.conversation.update({
             where: {
                 id: validatedData.conversationId
             },
             data: {
-                isArchived: false,
                 lastUpdated: new Date()
             }
         });
 
+        // TODO
         // Here you would typically integrate with your AI service
         // For now, creating a simple bot response
         const botMessage = await prisma.message.create({
@@ -162,6 +162,7 @@ export async function POST(request: Request) {
 
         return Response.json({
             success: true,
+            message: "Response generated successfully",
             data: {
                 userMessage,
                 botMessage
@@ -195,7 +196,7 @@ export async function POST(request: Request) {
 export async function DELETE(request: Request) {
     const session = await getServerSession(authOptions);
     const user: User | null = session?.user || null;
-    if(!session || !session.user) {
+    if (!session || !session.user) {
         return Response.json(
             {
                 success: false,
@@ -250,10 +251,15 @@ export async function DELETE(request: Request) {
             }
         });
 
-        return Response.json({
-            success: true,
-            message: "Message deleted successfully"
-        });
+        return Response.json(
+            {
+                success: true,
+                message: "Message deleted successfully"
+            },
+            {
+                status: 200
+            }
+        );
     }
     catch (error) {
         if (error instanceof Error && error.name === 'ZodError') {
