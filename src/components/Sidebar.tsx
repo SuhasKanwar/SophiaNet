@@ -1,14 +1,11 @@
 "use client";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useCallback } from "react";
-import {
-  ChevronsLeftRight,
-  Clock,
-  Search,
-} from "lucide-react";
+import { ChevronsLeftRight, Clock, Search } from "lucide-react";
 import Image from "next/image";
 import { ToolButton, NewChatButton, ChatItem } from "./SidebarComponents";
 import { useToast } from "@/providers/ToastProvider";
+import axios, { AxiosError } from "axios";
 
 interface SidebarItem {
   name: string;
@@ -40,20 +37,13 @@ export default function Sidebar({
   const [expanded, setExpanded] = useState(true);
   const [loadingNew, setLoadingNew] = useState(false);
   const [search, setSearch] = useState("");
-  const [chats, setChats] = useState<ChatSession[]>([
-    { id: "c1", title: "Photosynthesis summary", updatedAt: "2025-08-29T10:05:00Z" },
-    { id: "c2", title: "Lecture: Quantum gates", updatedAt: "2025-08-30T14:20:00Z" },
-    { id: "c3", title: "OCR cleanup notes", updatedAt: "2025-08-31T09:12:00Z" },
-    { id: "c4", title: "YouTube: CNN architectures", updatedAt: "2025-08-31T11:46:00Z" },
-    { id: "c5", title: "Summarize: Web Scrape - LLM", updatedAt: "2025-08-28T18:33:00Z" },
-  ]);
+  const [chats, setChats] = useState<ChatSession[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState("");
+  const { showToast } = useToast();
 
   const currentWidth = expanded ? widthExpanded : widthCollapsed;
 
-  const { showToast } = useToast();
-  
   useEffect(() => {
     document.documentElement.style.setProperty("--sidebar-width", `${currentWidth}px`);
     const nav = document.querySelector("nav");
@@ -63,42 +53,114 @@ export default function Sidebar({
     }
   }, [currentWidth]);
 
+  const fetchChats = useCallback(async () => {
+    try {
+      const res = await axios.get("/api/conversation");
+      if (!res.data.success) throw new Error(res.data.message || "Failed");
+      const mapped: ChatSession[] = res.data.data.map((c: any) => ({
+        id: c.id,
+        title: c.title,
+        updatedAt: c.lastUpdated,
+      }));
+      setChats(mapped);
+    } catch (e: any) {
+      const msg =
+        (e)?.response?.data?.message ||
+        (e as Error).message ||
+        "Error";
+      showToast({ type: "error", title: "Failed to load chats", message: msg });
+    }
+  }, [showToast]);
+
+  useEffect(() => {
+    fetchChats();
+  }, [fetchChats]);
+
   const filteredChats = useMemo(
     () => chats.filter((c) => c.title.toLowerCase().includes(search.toLowerCase())),
     [search, chats]
   );
 
-  const handleNewChat = () => {
-    router.push('/chatbot');
-    showToast({
-      type: "success",
-      title: "New chat created successfully",
-      message: "You can start chatting now."
-    });
+  const handleNewChat = async () => {
+    if (loadingNew) return;
+    setLoadingNew(true);
+    try {
+      const res = await axios.post("/api/conversation", { title: "New Chat" });
+      if (!res.data.success) throw new Error(res.data.message || "Failed");
+      setChats((prev) => [{ id: res.data.data.id, title: res.data.data.title, updatedAt: res.data.data.lastUpdated }, ...prev]);
+      router.push(`/chatbot/c/${res.data.data.id}`);
+      showToast({ type: "success", title: "Chat created", message: "Ready to start messaging." });
+    } catch (e: any) {
+      const msg =
+        (e)?.response?.data?.message ||
+        (e as Error).message ||
+        "Error";
+      showToast({ type: "error", title: "Create failed", message: msg });
+    } finally {
+      setLoadingNew(false);
+    }
   };
 
   const startRename = useCallback((id: string, title: string) => {
-    // TODO: Implement rename functionality
-    console.log("Start rename:", id, title);
+    setEditingId(id);
+    setEditingValue(title);
   }, []);
 
-  const commitRename = useCallback(() => {
-    // TODO: Implement commit rename API call
-    console.log("Commit rename");
-  }, []);
+  const commitRename = useCallback(async () => {
+    if (!editingId) return;
+    const newTitle = editingValue.trim();
+    if (!newTitle) {
+      setEditingId(null);
+      setEditingValue("");
+      return;
+    }
+    const oldChats = chats;
+    setChats((prev) => prev.map((c) => (c.id === editingId ? { ...c, title: newTitle } : c)));
+    setEditingId(null);
+    setEditingValue("");
+    try {
+      const res = await axios.put("/api/rename-conversation", {
+        conversationId: editingId,
+        title: newTitle
+      });
+      if (!res.data.success) throw new Error(res.data.message || "Failed");
+      showToast({ type: "success", title: "Renamed", message: "Conversation updated." });
+    } catch (e: any) {
+      const msg =
+        (e)?.response?.data?.message ||
+        (e as Error).message ||
+        "Error";
+      setChats(oldChats);
+      showToast({ type: "error", title: "Rename failed", message: msg });
+    }
+  }, [editingId, editingValue, chats, showToast]);
 
   const cancelRename = useCallback(() => {
-    // TODO: Implement cancel rename logic
-    console.log("Cancel rename");
+    setEditingId(null);
+    setEditingValue("");
   }, []);
 
   const deleteChat = useCallback(
-    (id: string) => {
-      // TODO: Implement delete API call
-      // TODO: Add proper routing after delete
-      console.log("Delete chat:", id);
+    async (id: string) => {
+      const oldChats = chats;
+      setChats((prev) => prev.filter((c) => c.id !== id));
+      try {
+        const res = await axios.delete("/api/conversation", {
+          data: { conversationId: id }
+        });
+        if (!res.data.success) throw new Error(res.data.message || "Failed");
+        showToast({ type: "success", title: "Deleted", message: "Conversation removed." });
+        if (pathname.includes(id)) router.push("/chatbot");
+      } catch (e: any) {
+        const msg =
+          (e)?.response?.data?.message ||
+          (e as Error).message ||
+          "Error";
+        setChats(oldChats);
+        showToast({ type: "error", title: "Delete failed", message: msg });
+      }
     },
-    []
+    [chats, pathname, router, showToast]
   );
 
   return (
@@ -210,7 +272,7 @@ export default function Sidebar({
                     active={active}
                     expanded={expanded}
                     isEditing={isEditing}
-                    editingValue={editingValue}
+                    editingValue={isEditing ? editingValue : ""}
                     onEditValueChange={setEditingValue}
                     onStartRename={startRename}
                     onCommitRename={commitRename}
@@ -247,7 +309,7 @@ export default function Sidebar({
                   onStartRename={() => {}}
                   onCommitRename={() => {}}
                   onCancelRename={() => {}}
-                  onDelete={() => {}}
+                  onDelete={() => deleteChat(chat.id)}
                 />
               );
             })}

@@ -60,21 +60,19 @@ export async function PUT(request: Request) {
             return Response.json(
                 {
                     success: false,
-                    message: "Invalid request data"
+                    message: "Invalid request data",
+                    error: (error as any).issues || error.message
                 },
-                {
-                    status: 400
-                }
+                { status: 400 }
             );
         }
         return Response.json(
             {
                 success: false,
-                message: "Internal Server Error"
+                message: "Internal Server Error",
+                error: error instanceof Error ? error.message : String(error)
             },
-            {
-                status: 500
-            }
+            { status: 500 }
         );
     }
 }

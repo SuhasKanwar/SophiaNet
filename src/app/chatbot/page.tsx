@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Loader2, Mic, Send, UploadCloud, Bot, X } from "lucide-react";
 import SuggestionCard from "@/components/SuggestionCard";
+import { useRouter } from "next/navigation";
+import axios, { AxiosError } from "axios";
 
 interface ChatMessage {
   id: number;
@@ -70,6 +72,7 @@ export default function DashboardPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   useEffect(() => {
     if (chatContainerRef.current) {
@@ -77,25 +80,34 @@ export default function DashboardPage() {
     }
   }, [messages, loading]);
 
-  const simulateBot = async (userText: string) => {
-    await new Promise((r) => setTimeout(r, 900));
-    return `You said: "${userText}".${selectedFile ? ` (File: ${selectedFile.name})` : ""}`;
+  const createConversation = async (title: string) => {
+    const res = await axios.post("/api/conversation", { title });
+    if (!res.data.success) throw new Error(res.data.message || "Failed to create conversation");
+    return res.data.data;
   };
-
+  const sendFirstMessage = async (conversationId: string, content: string) => {
+    const res = await axios.post("/api/chat", { conversationId, content });
+    if (!res.data.success) throw new Error(res.data.message || "Failed to send message");
+    return res.data.data;
+  };
   const handleSend = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || loading) return;
     setLoading(true);
     setError(null);
-    const userMsg: ChatMessage = { id: Date.now(), sender: "user", text: input };
-    setMessages((p) => [...p, userMsg]);
-    const ask = input;
+    const ask = input.trim();
     setInput("");
     try {
-      const reply = await simulateBot(ask);
-      const botMsg: ChatMessage = { id: Date.now() + 1, sender: "bot", text: reply };
-      setMessages((p) => [...p, botMsg]);
-    } catch {
-      setError("Failed to get a response.");
+      const title = ask.split(/\s+/).slice(0, 6).join(" ");
+      const conversation = await createConversation(title || "New Chat");
+      await sendFirstMessage(conversation.id, ask);
+      router.push(`/chatbot/c/${conversation.id}?q=${encodeURIComponent(ask)}`);
+    } catch (e: any) {
+      const msg =
+        (e)?.response?.data?.message ||
+        (e as Error).message ||
+        "Failed to start conversation";
+      setError(msg);
+      setInput(ask);
     } finally {
       setLoading(false);
       setSelectedFile(null);
