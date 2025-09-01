@@ -28,19 +28,19 @@ model User {
 }
 
 model Conversation {
-  id          String    @id @default(uuid())
+  id          String   @id @default(uuid())
   userId      String
   title       String?
-  startedAt   DateTime  @default(now())
-  lastUpdated DateTime  @updatedAt
-  isActive    Boolean   @default(true)
+  startedAt   DateTime @default(now())
+  lastUpdated DateTime @updatedAt
+  isArchived  Boolean  @default(true)
 
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   messages Message[]
 
   @@index([userId])
   @@index([lastUpdated])
-  @@index([isActive])
+  @@index([isArchived])
 }
 
 model Message {
