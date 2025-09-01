@@ -62,6 +62,7 @@ export default function Navbar() {
       style={{
         backdropFilter: `blur(${navbarBlur}px)`,
         backgroundColor: `rgba(0, 0, 0, ${navbarOpacity})`,
+        ["--navbar-height" as any]: "64px",
       }}
       initial={{ y: -100 }}
       animate={{ y: 0 }}

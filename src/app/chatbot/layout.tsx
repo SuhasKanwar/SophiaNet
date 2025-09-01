@@ -3,24 +3,24 @@ import Sidebar from "@/components/Sidebar";
 import { Notebook } from "lucide-react";
 
 const sidebarLinks = [
-    {
-        name: "Notes Tool",
-        icon: <Notebook />,
-        link: "/dashboard/med-alerts",
-    },
-]
+	{
+		name: "Notes Tool",
+		icon: <Notebook />,
+		link: "/chatbot/notes-tool",
+	},
+];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <main className="relative">
-      <Navbar />
-      <Sidebar items={sidebarLinks} />
-      <div
-        className="min-h-screen transition-[margin] duration-300"
-        style={{ marginLeft: "var(--sidebar-width, 60px)" }}
-      >
-        {children}
-      </div>
-    </main>
-  );
+	return (
+		<main className="relative flex flex-col min-h-screen overflow-hidden">
+			<Navbar />
+			<Sidebar items={sidebarLinks} />
+			<div
+				className="flex flex-col flex-1 min-h-0 overflow-hidden transition-[margin] duration-300"
+				style={{ marginLeft: "var(--sidebar-width, 60px)" }}
+			>
+				{children}
+			</div>
+		</main>
+	);
 }
