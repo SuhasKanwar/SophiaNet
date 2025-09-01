@@ -5,7 +5,6 @@ import {
   ChevronsLeftRight,
   Clock,
   Search,
-  Settings,
 } from "lucide-react";
 import Image from "next/image";
 import { ToolButton, NewChatButton, ChatItem } from "./SidebarComponents";
@@ -217,37 +216,17 @@ export default function Sidebar({
             </div>
           </div>
           
-          <div className="p-3 border-t border-white/10 flex flex-col gap-2" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-600/40 to-purple-600/40 border border-white/15 flex items-center justify-center text-[11px] font-semibold text-indigo-100">
-                SK
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium truncate">Suhas Kanwar</p>
-                <p className="text-[10px] text-neutral-500 truncate">
-                  Free Tier • {chats.length} chats
-                </p>
-              </div>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  // TODO: Implement settings navigation
-                  console.log("Settings clicked");
-                }}
-                className="p-1.5 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 text-neutral-300 hover:text-white transition"
-                title="Settings"
-              >
-                <Settings size={12} />
-              </button>
-            </div>
+          <div className="p-3 border-t border-white/10 text-center" onClick={(e) => e.stopPropagation()}>
+            <p className="text-xs font-medium text-white mb-1">SophiaNet</p>
+            <p className="text-[10px] text-neutral-400">© 2025 All rights reserved</p>
           </div>
         </>
       )}
 
       {!expanded && (
-        <div className="flex-1 flex flex-col items-center py-2 gap-2 overflow-hidden" onClick={(e) => e.stopPropagation()}>
+        <div className="flex-1 flex flex-col items-center py-2 gap-6 mt-2 overflow-hidden" onClick={(e) => e.stopPropagation()}>
           <NewChatButton onClick={handleNewChat} loading={loadingNew} expanded={expanded} />
-          <div className="flex-1 w-full overflow-y-auto px-1 space-y-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+          <div className="flex-1 w-full overflow-y-auto overflow-x-hidden px-1 space-y-4 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
             {chats.map((chat) => {
               const active = pathname.includes(chat.id);
               return (
@@ -267,21 +246,10 @@ export default function Sidebar({
               );
             })}
           </div>
-          <div className="p-2 border-t border-white/10 flex flex-col items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-600/40 to-purple-600/40 border border-white/15 flex items-center justify-center text-[10px] font-semibold text-indigo-100">
-              SK
-            </div>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                // TODO: Implement settings navigation
-                console.log("Settings clicked");
-              }}
-              className="p-1.5 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 text-neutral-300 hover:text-white transition"
-              title="Settings"
-            >
-              <Settings size={12} />
-            </button>
+          <div className="border-t border-white/10 pt-2">
+            <p className="text-[8px] text-neutral-500 writing-mode-vertical text-center" style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }} title="SophiaNet © 2025">
+              SN
+            </p>
           </div>
         </div>
       )}
