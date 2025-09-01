@@ -8,13 +8,52 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Sender {
+  user
+  bot
+  system
+}
+
 model User {
-  id        String   @id
-  email     String?  @unique
-  name      String?
-  image     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String         @id
+  email         String?        @unique
+  name          String?
+  image         String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  conversations Conversation[]
 
   @@index([email])
+  @@index([createdAt])
+}
+
+model Conversation {
+  id          String    @id @default(uuid())
+  userId      String
+  title       String?
+  startedAt   DateTime  @default(now())
+  lastUpdated DateTime  @updatedAt
+  isActive    Boolean   @default(true)
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages Message[]
+
+  @@index([userId])
+  @@index([lastUpdated])
+  @@index([isActive])
+}
+
+model Message {
+  id             String   @id @default(uuid())
+  conversationId String
+  sender         Sender
+  content        String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([createdAt])
+  @@index([sender])
 }
