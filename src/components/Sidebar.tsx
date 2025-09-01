@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { ToolButton, NewChatButton, ChatItem } from "./SidebarComponents";
+import { useToast } from "@/providers/ToastProvider";
 
 interface SidebarItem {
   name: string;
@@ -50,6 +51,8 @@ export default function Sidebar({
   const [editingValue, setEditingValue] = useState("");
 
   const currentWidth = expanded ? widthExpanded : widthCollapsed;
+
+  const { showToast } = useToast();
   
   useEffect(() => {
     document.documentElement.style.setProperty("--sidebar-width", `${currentWidth}px`);
@@ -66,9 +69,12 @@ export default function Sidebar({
   );
 
   const handleNewChat = () => {
-    // TODO: Implement API call to create new chat
-    // TODO: Add proper routing logic
-    console.log("New chat clicked");
+    router.push('/chatbot');
+    showToast({
+      type: "success",
+      title: "New chat created successfully",
+      message: "You can start chatting now."
+    });
   };
 
   const startRename = useCallback((id: string, title: string) => {
