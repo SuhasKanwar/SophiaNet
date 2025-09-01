@@ -1,3 +1,4 @@
+import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import { Notebook } from "lucide-react";
 
@@ -12,6 +13,7 @@ const sidebarLinks = [
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <main className="relative">
+      <Navbar />
       <Sidebar items={sidebarLinks} />
       <div
         className="min-h-screen transition-[margin] duration-300"
