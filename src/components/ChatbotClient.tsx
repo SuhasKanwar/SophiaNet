@@ -2,6 +2,8 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Loader2, Mic, Send, UploadCloud, Bot, X } from "lucide-react";
 import axios from "axios";
+import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
+import { useFileSelection } from "@/hooks/useFileSelection";
 
 interface ChatMessage {
   id: string;
@@ -20,15 +22,19 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [voiceActive, setVoiceActive] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
+  const { file: selectedFile, trigger: triggerFile, clear: removeFile, inputProps } =
+    useFileSelection(".pdf,.txt,.md,.png,.jpg,.jpeg");
+
+  const { start: startVoice, active: voiceActive } = useSpeechRecognition({
+    onResult: (t) => setInput(t),
+    onError: (m) => setError(m),
+  });
+
   useEffect(() => {
-    if (chatContainerRef.current) {
+    if (chatContainerRef.current)
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-    }
   }, [messages, loading]);
 
   const fetchMessages = useCallback(async () => {
@@ -51,48 +57,13 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
     }
   }, [chatID]);
 
-  useEffect(() => {
-    fetchMessages();
-  }, [fetchMessages]);
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.[0]) setSelectedFile(e.target.files[0]);
-  };
-  const removeFile = () => setSelectedFile(null);
-
-  const handleVoice = () => {
-    if (!("webkitSpeechRecognition" in window || "SpeechRecognition" in window)) {
-      setError("Speech recognition not supported");
-      return;
-    }
-    setVoiceActive(true);
-    const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-    recognition.lang = "en-US";
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
-    recognition.onresult = (event: any) => {
-      setInput(event.results[0][0].transcript);
-      setVoiceActive(false);
-    };
-    recognition.onerror = () => {
-      setError("Voice input failed");
-      setVoiceActive(false);
-    };
-    recognition.onend = () => setVoiceActive(false);
-    recognition.start();
-  };
+  useEffect(() => { fetchMessages(); }, [fetchMessages]);
 
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
     setLoading(true);
     setError(null);
-    const optimistic: ChatMessage = {
-      id: "temp-" + Date.now(),
-      sender: "user",
-      text: input
-    };
+    const optimistic: ChatMessage = { id: "temp-" + Date.now(), sender: "user", text: input };
     const content = input;
     setInput("");
     setMessages((p) => [...p, optimistic]);
@@ -103,16 +74,8 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
         const without = prev.filter((m) => m.id !== optimistic.id);
         return [
           ...without,
-          {
-            id: res.data.data.userMessage.id,
-            sender: res.data.data.userMessage.sender,
-            text: res.data.data.userMessage.content
-          },
-          {
-            id: res.data.data.botMessage.id,
-            sender: res.data.data.botMessage.sender,
-            text: res.data.data.botMessage.content
-          }
+            { id: res.data.data.userMessage.id, sender: res.data.data.userMessage.sender, text: res.data.data.userMessage.content },
+            { id: res.data.data.botMessage.id, sender: res.data.data.botMessage.sender, text: res.data.data.botMessage.content }
         ];
       });
     } catch (e: any) {
@@ -121,23 +84,15 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
       setError(e?.response?.data?.message || e.message || "Failed to send message");
     } finally {
       setLoading(false);
-      setSelectedFile(null);
     }
   };
 
   return (
-    <section
-      className="flex flex-col w-full px-3 pt-4 pb-3 items-center"
-      style={{ height: "calc(99vh - var(--navbar-height,64px))" }}
-    >
+    <section className="flex flex-col w-full px-3 pt-4 pb-3 items-center" style={{ height: "calc(99vh - var(--navbar-height,64px))" }}>
       <style>{`.hide-scrollbar::-webkit-scrollbar{display:none}.hide-scrollbar{scrollbar-width:none;-ms-overflow-style:none}`}</style>
       <div className="w-full max-w-6xl h-full flex flex-col mx-auto pb-[130px]">
         {/* added bottom padding space so fixed input won't cover messages */}
-        <div
-          ref={chatContainerRef}
-          className="flex-1 w-full mx-auto mb-2 overflow-y-auto hide-scrollbar space-y-6 px-1"
-          style={{ minHeight: 0 }}
-        >
+        <div ref={chatContainerRef} className="flex-1 w-full mx-auto mb-2 overflow-y-auto hide-scrollbar space-y-6 px-1" style={{ minHeight: 0 }}>
           {initialLoading && (
             <div className="flex items-center gap-2 text-sm text-neutral-400">
               <Loader2 className="w-4 h-4 animate-spin" /> Loading conversation...
@@ -192,34 +147,26 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
           )}
           <div className="rounded-2xl border border-indigo-400/40 bg-white/5 backdrop-blur-xl flex items-center px-4 py-3 gap-2 shadow-lg">
             <button
-              onClick={() => fileInputRef.current?.click()}
+              onClick={triggerFile}
               className="p-2 rounded-md hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10"
               disabled={loading}
               title="Upload file"
             >
               <UploadCloud className="w-5 h-5" />
             </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              className="hidden"
-              accept=".pdf,.txt,.md,.png,.jpg,.jpeg"
-              onChange={handleFileUpload}
-            />
+            <input {...inputProps} />
             <input
               type="text"
               className="flex-1 bg-transparent outline-none text-sm px-2 py-1 placeholder:text-neutral-500"
               placeholder="Message..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !loading) sendMessage();
-              }}
+              onKeyDown={(e) => { if (e.key === "Enter" && !loading) sendMessage(); }}
               disabled={loading}
               maxLength={4000}
             />
             <button
-              onClick={handleVoice}
+              onClick={startVoice}
               disabled={loading || voiceActive}
               className={`p-2 rounded-md border border-white/10 text-neutral-300 hover:text-white hover:bg-white/10 ${
                 voiceActive ? "animate-pulse bg-indigo-500/20 border-indigo-400/40 text-indigo-200" : ""

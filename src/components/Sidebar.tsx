@@ -98,7 +98,6 @@ export default function Sidebar({
     setEditingValue(title);
   }, []);
 
-  // Extract actual API rename into separate function
   const performRename = useCallback(async (id: string, newTitle: string) => {
     const oldChats = chats;
     setChats((prev) => prev.map((c) => (c.id === id ? { ...c, title: newTitle } : c)));
@@ -119,13 +118,12 @@ export default function Sidebar({
   const commitRename = useCallback(() => {
     if (!editingId) return;
     const raw = editingValue.trim();
-    if (!raw) { // empty => cancel silently
+    if (!raw) {
       setEditingId(null);
       setEditingValue("");
       return;
     }
     const newTitle = raw.slice(0, MAX_TITLE_LEN);
-    // Open confirmation modal; do NOT exit editing yet
     setConfirmState({ type: "rename", id: editingId, newTitle });
   }, [editingId, editingValue]);
 
@@ -134,7 +132,6 @@ export default function Sidebar({
     setEditingValue("");
   }, []);
 
-  // Delete flow separated
   const performDelete = useCallback(
     async (id: string) => {
       const oldChats = chats;
@@ -153,25 +150,21 @@ export default function Sidebar({
     [chats, pathname, router, showToast]
   );
 
-  // Wrapper passed to ChatItem to request delete (opens modal)
   const requestDelete = useCallback((id: string) => {
     setConfirmState({ type: "delete", id });
   }, []);
 
-  // Confirm modal handlers
   const handleConfirm = useCallback(async () => {
     if (!confirmState) return;
     setProcessing(true);
     if (confirmState.type === "rename" && confirmState.newTitle) {
       const id = confirmState.id;
       const title = confirmState.newTitle;
-      // exit editing state first
       setEditingId(null);
       setEditingValue("");
       await performRename(id, title);
     } else if (confirmState.type === "delete") {
       await performDelete(confirmState.id);
-      // If deleting the currently editing chat, clear editing
       if (editingId === confirmState.id) {
         setEditingId(null);
         setEditingValue("");
@@ -182,7 +175,6 @@ export default function Sidebar({
   }, [confirmState, performRename, performDelete, editingId]);
 
   const handleCancelConfirm = useCallback(() => {
-    // If it was rename, keep editing active so user can adjust
     setConfirmState(null);
   }, []);
 
@@ -348,7 +340,6 @@ export default function Sidebar({
         )}
       </aside>
 
-      {/* Global Confirmation Modal now outside sidebar so it covers full viewport */}
       <ConfirmationModal
         open={!!confirmState}
         loading={processing}

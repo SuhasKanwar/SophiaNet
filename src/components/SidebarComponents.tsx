@@ -1,12 +1,5 @@
 import { usePathname, useRouter } from "next/navigation";
-import {
-  Plus,
-  Loader2,
-  EllipsisVertical,
-  Pencil,
-  Trash2,
-  X,
-} from "lucide-react";
+import { Plus, Loader2, EllipsisVertical, Pencil, Trash2, X } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -15,29 +8,10 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 
-interface SidebarItem {
-  name: string;
-  icon: any;
-  link: string;
-}
-
-interface ChatSession {
-  id: string;
-  title: string;
-  updatedAt: string;
-}
-
-interface ToolButtonProps {
-  item: SidebarItem;
-  expanded: boolean;
-}
-
-interface NewChatButtonProps {
-  onClick: () => void;
-  loading: boolean;
-  expanded: boolean;
-}
-
+interface SidebarItem { name: string; icon: any; link: string; }
+interface ChatSession { id: string; title: string; updatedAt: string; }
+interface ToolButtonProps { item: SidebarItem; expanded: boolean; }
+interface NewChatButtonProps { onClick: () => void; loading: boolean; expanded: boolean; }
 interface ChatItemProps {
   chat: ChatSession;
   active: boolean;
@@ -49,37 +23,29 @@ interface ChatItemProps {
   onCommitRename: () => void;
   onCancelRename: () => void;
   onDelete: (id: string) => void;
-  confirmingRename?: boolean; // added
+  confirmingRename?: boolean;
 }
 
 export function ToolButton({ item, expanded }: ToolButtonProps) {
   const pathname = usePathname();
   const router = useRouter();
   const active = pathname === item.link;
-
   return (
     <button
-      onClick={(e) => {
-        e.stopPropagation();
-        router.push(item.link);
-      }}
+      onClick={(e) => { e.stopPropagation(); router.push(item.link); }}
       className={`group relative flex items-center w-full rounded-lg px-2 py-2 text-sm transition-colors ${
         active
-          ? 'bg-indigo-500/20 text-white ring-1 ring-inset ring-indigo-500/50'
-          : 'text-neutral-300 hover:bg-white/10'
+          ? "bg-indigo-500/20 text-white ring-1 ring-inset ring-indigo-500/50"
+          : "text-neutral-300 hover:bg-white/10"
       }`}
       title={!expanded ? item.name : undefined}
     >
       <span className={`flex items-center justify-center shrink-0 w-7 h-7 rounded-md ${
-        active ? 'bg-indigo-500/30 text-indigo-300' : 'bg-white/5 group-hover:bg-white/10'
-      } ${!expanded ? 'mx-auto' : ''}`}>
+        active ? "bg-indigo-500/30 text-indigo-300" : "bg-white/5 group-hover:bg-white/10"
+      } ${!expanded ? "mx-auto" : ""}`}>
         {item.icon}
       </span>
-      {expanded && (
-        <span className="truncate ml-3 transition-all">
-          {item.name}
-        </span>
-      )}
+      {expanded && <span className="truncate ml-3 transition-all">{item.name}</span>}
     </button>
   );
 }
@@ -87,13 +53,10 @@ export function ToolButton({ item, expanded }: ToolButtonProps) {
 export function NewChatButton({ onClick, loading, expanded }: NewChatButtonProps) {
   return (
     <button
-      onClick={(e) => {
-        e.stopPropagation();
-        onClick();
-      }}
+      onClick={(e) => { e.stopPropagation(); onClick(); }}
       disabled={loading}
       className={`flex items-center justify-center rounded-md bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 border border-indigo-400/30 disabled:opacity-60 transition ${
-        expanded ? 'w-8 h-8' : 'w-8 h-8 mx-auto'
+        expanded ? "w-8 h-8" : "w-8 h-8 mx-auto"
       }`}
       title="New Chat"
     >
@@ -116,21 +79,20 @@ export function ChatItem({
   confirmingRename = false,
 }: ChatItemProps) {
   const router = useRouter();
-
   if (!expanded) {
     return (
       <div className="group/chat relative flex justify-center px-1">
         <button
-          onClick={() => {
-            router.push(`/chatbot/c/${chat.id}`);
-          }}
+          onClick={() => router.push(`/chatbot/c/${chat.id}`)}
           className="w-full flex items-center justify-center"
         >
-          <span className={`inline-block w-3 h-3 rounded-full transition-all ${
-            active 
-              ? 'bg-indigo-400 shadow-[0_0_0_3px_rgba(99,102,241,0.35)]'
-              : 'bg-neutral-500 hover:bg-neutral-400'
-          } ${active ? 'scale-110' : ''}`} />
+          <span
+            className={`inline-block w-3 h-3 rounded-full transition-all ${
+              active
+                ? "bg-indigo-400 shadow-[0_0_0_3px_rgba(99,102,241,0.35)]"
+                : "bg-neutral-500 hover:bg-neutral-400"
+            } ${active ? "scale-110" : ""}`}
+          />
         </button>
         <div className="absolute left-full ml-2 opacity-0 group-hover/chat:opacity-100 pointer-events-none z-50 bg-black/90 backdrop-blur-xl border border-white/10 rounded-md px-2 py-1 text-xs text-white whitespace-nowrap transition-opacity">
           {chat.title}
@@ -138,27 +100,28 @@ export function ChatItem({
       </div>
     );
   }
-
   return (
-    <div className={`group relative w-full flex items-stretch gap-2 rounded-lg text-xs leading-snug transition-colors ${
-      active
-        ? 'bg-indigo-500/20 ring-1 ring-inset ring-indigo-500/50 text-white'
-        : 'hover:bg-white/10 text-neutral-300'
-    }`}>
+    <div
+      className={`group relative w-full flex items-stretch gap-2 rounded-lg text-xs leading-snug transition-colors ${
+        active
+          ? "bg-indigo-500/20 ring-1 ring-inset ring-indigo-500/50 text-white"
+          : "hover:bg-white/10 text-neutral-300"
+      }`}
+    >
       <button
         onClick={(e) => {
           e.stopPropagation();
-          if (!isEditing) {
-            router.push(`/chatbot/c/${chat.id}`);
-          }
+          if (!isEditing) router.push(`/chatbot/c/${chat.id}`);
         }}
         className="flex items-center gap-2 flex-1 px-2 py-2 text-left"
       >
-        <span className={`inline-block w-2 h-2 rounded-full self-center ${
-          active
-            ? 'bg-indigo-400 shadow-[0_0_0_3px_rgba(99,102,241,0.25)]'
-            : 'bg-neutral-500 group-hover:bg-neutral-400'
-        }`} />
+        <span
+          className={`inline-block w-2 h-2 rounded-full self-center ${
+            active
+              ? "bg-indigo-400 shadow-[0_0_0_3px_rgba(99,102,241,0.25)]"
+              : "bg-neutral-500 group-hover:bg-neutral-400"
+          }`}
+        />
         {!isEditing && <span className="flex-1 truncate break-words">{chat.title}</span>}
         {isEditing && (
           <input
@@ -186,11 +149,7 @@ export function ChatItem({
             onClick={(e) => e.stopPropagation()}
             className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition p-1.5 mr-1 my-1 rounded-md hover:bg-white/10 text-neutral-400 hover:text-neutral-200"
           >
-            {isEditing ? (
-              <X size={14} onClick={onCancelRename} />
-            ) : (
-              <EllipsisVertical size={14} />
-            )}
+            {isEditing ? <X size={14} onClick={onCancelRename} /> : <EllipsisVertical size={14} />}
           </button>
         </DropdownMenuTrigger>
         {!isEditing && (

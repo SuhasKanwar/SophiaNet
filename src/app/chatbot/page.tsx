@@ -4,7 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { Loader2, Mic, Send, UploadCloud, Bot, X } from "lucide-react";
 import SuggestionCard from "@/components/SuggestionCard";
 import { useRouter } from "next/navigation";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
+import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
+import { useFileSelection } from "@/hooks/useFileSelection";
 
 interface ChatMessage {
   id: number;
@@ -70,16 +72,20 @@ export default function DashboardPage() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [voiceActive, setVoiceActive] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
+  const { file: selectedFile, trigger: triggerFile, clear: removeFile, inputProps } =
+    useFileSelection(".pdf,.txt,.md,.png,.jpg,.jpeg");
+
+  const { start: startVoice, active: voiceActive } = useSpeechRecognition({
+    onResult: (t) => setInput(t),
+    onError: (m) => setError(m),
+  });
+
   useEffect(() => {
-    if (chatContainerRef.current) {
+    if (chatContainerRef.current)
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-    }
   }, [messages, loading]);
 
   const createConversation = async (title: string) => {
@@ -104,55 +110,17 @@ export default function DashboardPage() {
       await sendFirstMessage(conversation.id, ask);
       router.push(`/chatbot/c/${conversation.id}`);
     } catch (e: any) {
-      const msg =
-        e?.response?.data?.message ||
-        (e as Error).message ||
-        "Failed to start conversation";
+      const msg = e?.response?.data?.message || e.message || "Failed to start conversation";
       setError(msg);
       setInput(ask);
     } finally {
       setLoading(false);
-      setSelectedFile(null);
     }
   };
-
   const handleSuggestion = (q: string) => setInput(q);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.[0]) setSelectedFile(e.target.files[0]);
-  };
-
-  const removeFile = () => setSelectedFile(null);
-
-  const handleVoice = () => {
-    if (!("webkitSpeechRecognition" in window || "SpeechRecognition" in window)) {
-      setError("Speech recognition not supported");
-      return;
-    }
-    setVoiceActive(true);
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-    recognition.lang = "en-US";
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
-    recognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      setInput(transcript);
-      setVoiceActive(false);
-    };
-    recognition.onerror = () => {
-      setError("Voice input failed");
-      setVoiceActive(false);
-    };
-    recognition.onend = () => setVoiceActive(false);
-    recognition.start();
-  };
-
   return (
-    <section
-      className="flex flex-col w-full px-3 pt-4 pb-3 items-center"
-      style={{ height: "calc(99vh - var(--navbar-height,64px))" }}
-    >
+    <section className="flex flex-col w-full px-3 pt-4 pb-3 items-center" style={{ height: "calc(99vh - var(--navbar-height,64px))" }}>
       <style>{`.hide-scrollbar::-webkit-scrollbar{display:none}.hide-scrollbar{scrollbar-width:none;-ms-overflow-style:none}`}</style>
       <div className="w-full max-w-6xl h-full flex flex-col mx-auto pb-[130px]">
         {messages.length === 0 && !loading && (
@@ -227,52 +195,44 @@ export default function DashboardPage() {
               </button>
             </div>
           )}
-          <div className="rounded-2xl border border-indigo-400/40 bg-white/5 backdrop-blur-xl flex items-center px-4 py-3 gap-2 shadow-lg">
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="p-2 rounded-md hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10"
-              disabled={loading}
-              title="Upload file"
-            >
-              <UploadCloud className="w-5 h-5" />
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              className="hidden"
-              accept=".pdf,.txt,.md,.png,.jpg,.jpeg"
-              onChange={handleFileUpload}
-            />
-            <input
-              type="text"
-              className="flex-1 bg-transparent outline-none text-sm px-2 py-1 placeholder:text-neutral-500"
-              placeholder="Ask anything..."
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !loading) handleSend();
-              }}
-              disabled={loading}
-            />
-            <button
-              onClick={handleVoice}
-              disabled={loading || voiceActive}
-              className={`p-2 rounded-md border border-white/10 text-neutral-300 hover:text-white hover:bg-white/10 ${
-                voiceActive ? "animate-pulse bg-indigo-500/20 border-indigo-400/40 text-indigo-200" : ""
-              }`}
-              title="Voice input"
-            >
-              <Mic className="w-5 h-5" />
-            </button>
-            <button
-              onClick={handleSend}
-              disabled={loading || !input.trim()}
-              className="p-2 rounded-md bg-gradient-to-r from-indigo-500 to-violet-500 text-white text-sm font-medium hover:from-indigo-400 hover:to-violet-400 disabled:opacity-50 disabled:cursor-not-allowed shadow border border-indigo-400/40"
-              title="Send"
-            >
-              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
-            </button>
-          </div>
+            <div className="rounded-2xl border border-indigo-400/40 bg-white/5 backdrop-blur-xl flex items-center px-4 py-3 gap-2 shadow-lg">
+              <button
+                onClick={triggerFile}
+                className="p-2 rounded-md hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10"
+                disabled={loading}
+                title="Upload file"
+              >
+                <UploadCloud className="w-5 h-5" />
+              </button>
+              <input {...inputProps} />
+              <input
+                type="text"
+                className="flex-1 bg-transparent outline-none text-sm px-2 py-1 placeholder:text-neutral-500"
+                placeholder="Ask anything..."
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter" && !loading) handleSend(); }}
+                disabled={loading}
+              />
+              <button
+                onClick={startVoice}
+                disabled={loading || voiceActive}
+                className={`p-2 rounded-md border border-white/10 text-neutral-300 hover:text-white hover:bg-white/10 ${
+                  voiceActive ? "animate-pulse bg-indigo-500/20 border-indigo-400/40 text-indigo-200" : ""
+                }`}
+                title="Voice input"
+              >
+                <Mic className="w-5 h-5" />
+              </button>
+              <button
+                onClick={handleSend}
+                disabled={loading || !input.trim()}
+                className="p-2 rounded-md bg-gradient-to-r from-indigo-500 to-violet-500 text-white text-sm font-medium hover:from-indigo-400 hover:to-violet-400 disabled:opacity-50 disabled:cursor-not-allowed shadow border border-indigo-400/40"
+                title="Send"
+              >
+                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+              </button>
+            </div>
           <div className="text-[11px] text-neutral-500 text-center mt-2">
             This assistant can summarize, explain concepts, and turn material into study aids.
           </div>
