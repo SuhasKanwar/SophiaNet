@@ -49,6 +49,7 @@ interface ChatItemProps {
   onCommitRename: () => void;
   onCancelRename: () => void;
   onDelete: (id: string) => void;
+  confirmingRename?: boolean; // added
 }
 
 export function ToolButton({ item, expanded }: ToolButtonProps) {
@@ -112,6 +113,7 @@ export function ChatItem({
   onCommitRename,
   onCancelRename,
   onDelete,
+  confirmingRename = false,
 }: ChatItemProps) {
   const router = useRouter();
 
@@ -151,7 +153,6 @@ export function ChatItem({
           }
         }}
         className="flex items-center gap-2 flex-1 px-2 py-2 text-left"
-        disabled={isEditing}
       >
         <span className={`inline-block w-2 h-2 rounded-full self-center ${
           active
@@ -164,9 +165,14 @@ export function ChatItem({
             autoFocus
             value={editingValue}
             onChange={(e) => onEditValueChange(e.target.value)}
-            onBlur={onCommitRename}
+            onBlur={() => {
+              if (!confirmingRename && editingValue.trim() === "") onCancelRename();
+            }}
             onKeyDown={(e) => {
-              if (e.key === "Enter") onCommitRename();
+              if (e.key === "Enter") {
+                e.preventDefault();
+                onCommitRename();
+              }
               if (e.key === "Escape") onCancelRename();
             }}
             className="flex-1 bg-white/10 border border-indigo-400/40 rounded px-2 py-1 text-xs outline-none"
