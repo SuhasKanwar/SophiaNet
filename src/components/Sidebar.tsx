@@ -81,24 +81,9 @@ export default function Sidebar({
   );
 
   const handleNewChat = async () => {
-    if (loadingNew) return;
-    setLoadingNew(true);
-    try {
-      const res = await axios.post("/api/conversation", { title: "New Chat" });
-      if (!res.data.success) throw new Error(res.data.message || "Failed");
-      setChats((prev) => [...prev, {
-        id: res.data.data.id,
-        title: (res.data.data.title || "New Chat").slice(0, MAX_TITLE_LEN),
-        updatedAt: res.data.data.lastUpdated
-      }]);
-      router.push(`/chatbot/c/${res.data.data.id}`);
-      showToast({ type: "success", title: "Chat created", message: "Ready to start messaging." });
-    } catch (e: any) {
-      const msg = e?.response?.data?.message || e.message || "Error";
-      showToast({ type: "error", title: "Create failed", message: msg });
-    } finally {
-      setLoadingNew(false);
-    }
+    if(loadingNew) return;
+    router.push("/chatbot");
+    showToast({ type: "success", title: "Chat created", message: "Ready to start messaging." });
   };
 
   const startRename = useCallback((id: string, title: string) => {
