@@ -1,5 +1,12 @@
 import { usePathname, useRouter } from "next/navigation";
-import { Plus, Loader2, EllipsisVertical, Pencil, Trash2, X } from "lucide-react";
+import {
+  Plus,
+  Loader2,
+  EllipsisVertical,
+  Pencil,
+  Trash2,
+  X,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -8,10 +15,25 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 
-interface SidebarItem { name: string; icon: any; link: string; }
-interface ChatSession { id: string; title: string; updatedAt: string; }
-interface ToolButtonProps { item: SidebarItem; expanded: boolean; }
-interface NewChatButtonProps { onClick: () => void; loading: boolean; expanded: boolean; }
+interface SidebarItem {
+  name: string;
+  icon: any;
+  link: string;
+}
+interface ChatSession {
+  id: string;
+  title: string;
+  updatedAt: string;
+}
+interface ToolButtonProps {
+  item: SidebarItem;
+  expanded: boolean;
+}
+interface NewChatButtonProps {
+  onClick: () => void;
+  loading: boolean;
+  expanded: boolean;
+}
 interface ChatItemProps {
   chat: ChatSession;
   active: boolean;
@@ -32,7 +54,10 @@ export function ToolButton({ item, expanded }: ToolButtonProps) {
   const active = pathname === item.link;
   return (
     <button
-      onClick={(e) => { e.stopPropagation(); router.push(item.link); }}
+      onClick={(e) => {
+        e.stopPropagation();
+        router.push(item.link);
+      }}
       className={`group relative flex items-center w-full rounded-lg px-2 py-2 text-sm transition-colors ${
         active
           ? "bg-indigo-500/20 text-white ring-1 ring-inset ring-indigo-500/50"
@@ -40,27 +65,44 @@ export function ToolButton({ item, expanded }: ToolButtonProps) {
       }`}
       title={!expanded ? item.name : undefined}
     >
-      <span className={`flex items-center justify-center shrink-0 w-7 h-7 rounded-md ${
-        active ? "bg-indigo-500/30 text-indigo-300" : "bg-white/5 group-hover:bg-white/10"
-      } ${!expanded ? "mx-auto" : ""}`}>
+      <span
+        className={`flex items-center justify-center shrink-0 w-7 h-7 rounded-md ${
+          active
+            ? "bg-indigo-500/30 text-indigo-300"
+            : "bg-white/5 group-hover:bg-white/10"
+        } ${!expanded ? "mx-auto" : ""}`}
+      >
         {item.icon}
       </span>
-      {expanded && <span className="truncate ml-3 transition-all">{item.name}</span>}
+      {expanded && (
+        <span className="truncate ml-3 transition-all">{item.name}</span>
+      )}
     </button>
   );
 }
 
-export function NewChatButton({ onClick, loading, expanded }: NewChatButtonProps) {
+export function NewChatButton({
+  onClick,
+  loading,
+  expanded,
+}: NewChatButtonProps) {
   return (
     <button
-      onClick={(e) => { e.stopPropagation(); onClick(); }}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
       disabled={loading}
       className={`flex items-center justify-center rounded-md bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 border border-indigo-400/30 disabled:opacity-60 transition ${
         expanded ? "w-8 h-8" : "w-8 h-8 mx-auto"
       }`}
       title="New Chat"
     >
-      {loading ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
+      {loading ? (
+        <Loader2 size={14} className="animate-spin" />
+      ) : (
+        <Plus size={14} />
+      )}
     </button>
   );
 }
@@ -122,14 +164,17 @@ export function ChatItem({
               : "bg-neutral-500 group-hover:bg-neutral-400"
           }`}
         />
-        {!isEditing && <span className="flex-1 truncate break-words">{chat.title}</span>}
+        {!isEditing && (
+          <span className="flex-1 truncate break-words">{chat.title}</span>
+        )}
         {isEditing && (
           <input
             autoFocus
             value={editingValue}
             onChange={(e) => onEditValueChange(e.target.value)}
             onBlur={() => {
-              if (!confirmingRename && editingValue.trim() === "") onCancelRename();
+              if (!confirmingRename && editingValue.trim() === "")
+                onCancelRename();
             }}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
@@ -149,7 +194,11 @@ export function ChatItem({
             onClick={(e) => e.stopPropagation()}
             className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition p-1.5 mr-1 my-1 rounded-md hover:bg-white/10 text-neutral-400 hover:text-neutral-200"
           >
-            {isEditing ? <X size={14} onClick={onCancelRename} /> : <EllipsisVertical size={14} />}
+            {isEditing ? (
+              <X size={14} onClick={onCancelRename} />
+            ) : (
+              <EllipsisVertical size={14} />
+            )}
           </button>
         </DropdownMenuTrigger>
         {!isEditing && (

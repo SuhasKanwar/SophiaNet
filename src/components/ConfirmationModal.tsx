@@ -28,7 +28,9 @@ export default function ConfirmationModal({
 }: ConfirmationModalProps) {
   useEffect(() => {
     if (!open) return;
-    const fn = (e: KeyboardEvent) => { if (e.key === "Escape") onCancel(); };
+    const fn = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onCancel();
+    };
     window.addEventListener("keydown", fn);
     return () => window.removeEventListener("keydown", fn);
   }, [open, onCancel]);
@@ -36,8 +38,15 @@ export default function ConfirmationModal({
   if (!open) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-center justify-center" aria-modal="true" role="dialog">
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onCancel} />
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center"
+      aria-modal="true"
+      role="dialog"
+    >
+      <div
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        onClick={onCancel}
+      />
       <div className="relative w-full max-w-sm mx-auto rounded-xl border border-white/10 bg-neutral-900/95 p-5 shadow-xl">
         <button
           className="absolute top-2 right-2 p-1 rounded-md text-neutral-400 hover:text-white hover:bg-white/10"
@@ -47,7 +56,11 @@ export default function ConfirmationModal({
           <X size={16} />
         </button>
         <h2 className="text-sm font-semibold text-white mb-2">{title}</h2>
-        {description && <p className="text-xs text-neutral-400 mb-4 leading-relaxed">{description}</p>}
+        {description && (
+          <p className="text-xs text-neutral-400 mb-4 leading-relaxed">
+            {description}
+          </p>
+        )}
         <div className="flex items-center justify-end gap-2">
           <button
             onClick={onCancel}

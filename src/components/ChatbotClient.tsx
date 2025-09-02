@@ -4,6 +4,7 @@ import { Loader2, Mic, Send, UploadCloud, Bot, X } from "lucide-react";
 import axios from "axios";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { useFileSelection } from "@/hooks/useFileSelection";
+import { ACCEPT_FILE_TYPES } from "@/types/files";
 
 interface ChatMessage {
   id: string;
@@ -24,8 +25,8 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
   const [error, setError] = useState<string | null>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
-  const { file: selectedFile, trigger: triggerFile, clear: removeFile, inputProps } =
-    useFileSelection(".pdf,.txt,.md,.png,.jpg,.jpeg");
+  const { files: selectedFiles, trigger: triggerFile, clearAll: clearFiles, removeAt, inputProps } =
+    useFileSelection(ACCEPT_FILE_TYPES);
 
   const { start: startVoice, active: voiceActive } = useSpeechRecognition({
     onResult: (t) => setInput(t),
@@ -66,24 +67,36 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
     const optimistic: ChatMessage = { id: "temp-" + Date.now(), sender: "user", text: input };
     const content = input;
     setInput("");
-    setMessages((p) => [...p, optimistic]);
+    setMessages(p => [...p, optimistic]);
     try {
-      const res = await axios.post("/api/chat", { conversationId: chatID, content });
+      let res;
+      if (selectedFiles.length > 0) {
+        const fd = new FormData();
+        fd.append("conversationId", chatID);
+        fd.append("content", content);
+        selectedFiles.forEach(f => fd.append("files", f));
+        res = await axios.post("/api/chat", fd, {
+          headers: { "Content-Type": "multipart/form-data" }
+        });
+      } else {
+        res = await axios.post("/api/chat", { conversationId: chatID, content });
+      }
       if (!res.data.success) throw new Error(res.data.message || "Failed to send");
-      setMessages((prev) => {
-        const without = prev.filter((m) => m.id !== optimistic.id);
+      setMessages(prev => {
+        const without = prev.filter(m => m.id !== optimistic.id);
         return [
           ...without,
-            { id: res.data.data.userMessage.id, sender: res.data.data.userMessage.sender, text: res.data.data.userMessage.content },
-            { id: res.data.data.botMessage.id, sender: res.data.data.botMessage.sender, text: res.data.data.botMessage.content }
+          { id: res.data.data.userMessage.id, sender: res.data.data.userMessage.sender, text: res.data.data.userMessage.content },
+          { id: res.data.data.botMessage.id, sender: res.data.data.botMessage.sender, text: res.data.data.botMessage.content }
         ];
       });
     } catch (e: any) {
-      setMessages((prev) => prev.filter((m) => m.id !== optimistic.id));
+      setMessages(prev => prev.filter(m => m.id !== optimistic.id));
       setInput(content);
       setError(e?.response?.data?.message || e.message || "Failed to send message");
     } finally {
       setLoading(false);
+      clearFiles();
     }
   };
 
@@ -136,13 +149,23 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
       {/* Fixed input bar */}
       <div className="fixed z-10 bottom-0 left-[calc(var(--sidebar-width,60px))] right-0">
         <div className="w-full max-w-3xl mx-auto px-3 pb-3">
-          {selectedFile && (
-            <div className="flex items-center justify-between bg-white/5 border border-white/10 rounded-lg px-3 py-2 mb-2 text-xs">
-              <span className="truncate max-w-[80%] text-neutral-300">{selectedFile.name}</span>
-              <button onClick={removeFile} className="p-1 rounded hover:bg-white/10 text-neutral-400 hover:text-white">
-                <X className="w-4 h-4" />
-                <span className="sr-only">Remove file</span>
-              </button>
+          {selectedFiles.length > 0 && (
+            <div className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 mb-2 space-y-1 max-h-36 overflow-y-auto">
+              {selectedFiles.map((f, i) => (
+                <div key={i} className="flex items-center justify-between text-xs">
+                  <span className="truncate max-w-[80%] text-neutral-300">{f.name}</span>
+                  <button
+                    onClick={() => removeAt(i)}
+                    className="p-1 rounded hover:bg-white/10 text-neutral-400 hover:text-white"
+                    title="Remove file"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+              <div className="flex justify-end">
+                <button onClick={clearFiles} className="text-[10px] text-red-400 hover:underline">Clear all</button>
+              </div>
             </div>
           )}
           <div className="rounded-2xl border border-indigo-400/40 bg-white/5 backdrop-blur-xl flex items-center px-4 py-3 gap-2 shadow-lg">
