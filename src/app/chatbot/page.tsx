@@ -66,8 +66,6 @@ const SUGGESTIONS = [
   },
 ];
 
-const MAX_TITLE_LEN = 28;
-
 export default function DashboardPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
@@ -130,8 +128,7 @@ export default function DashboardPage() {
     const ask = input.trim();
     setInput("");
     try {
-      const title = ask.slice(0, MAX_TITLE_LEN);
-      const conversation = await createConversation(title || "New Chat");
+      const conversation = await createConversation(ask || "New Chat");
       await sendFirstMessage(conversation.id, ask);
       router.push(`/chatbot/c/${conversation.id}`);
     } catch (e: any) {

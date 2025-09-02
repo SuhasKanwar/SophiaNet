@@ -109,7 +109,6 @@ export async function POST(request: Request) {
             const conversationId = form.get("conversationId");
             const content = form.get("content");
             files = form.getAll("files").filter(f => typeof f === "object") as File[];
-            // validate file types
             const allowed = new Set<FileType>(SUPPORTED_FILE_TYPES);
             const invalid = files.filter(f => {
                 const ext = f.name.split(".").pop()?.toLowerCase() as FileType | undefined;

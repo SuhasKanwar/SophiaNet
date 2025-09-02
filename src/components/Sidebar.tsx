@@ -5,10 +5,15 @@ import { ChevronsLeftRight, Clock, Search } from "lucide-react";
 import Image from "next/image";
 import { ToolButton, NewChatButton, ChatItem } from "./SidebarComponents";
 import { useToast } from "@/providers/ToastProvider";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import ConfirmationModal from "./ConfirmationModal";
 
-const MAX_TITLE_LEN = 28;
+const MAX_TITLE_LEN = 25;
+
+function truncateTitle(title: string) {
+  if (title.length <= MAX_TITLE_LEN) return title;
+  return title.slice(0, MAX_TITLE_LEN - 3) + "...";
+}
 
 interface SidebarItem {
   name: string;
@@ -54,11 +59,17 @@ export default function Sidebar({
   const currentWidth = expanded ? widthExpanded : widthCollapsed;
 
   useEffect(() => {
-    document.documentElement.style.setProperty("--sidebar-width", `${currentWidth}px`);
+    document.documentElement.style.setProperty(
+      "--sidebar-width",
+      `${currentWidth}px`
+    );
     const nav = document.querySelector("nav");
     if (nav) {
       const navHeight = nav.offsetHeight || 56;
-      document.documentElement.style.setProperty("--nav-height", `${navHeight}px`);
+      document.documentElement.style.setProperty(
+        "--nav-height",
+        `${navHeight}px`
+      );
     }
   }, [currentWidth]);
 
@@ -68,7 +79,7 @@ export default function Sidebar({
       if (!res.data.success) throw new Error(res.data.message || "Failed");
       const mapped: ChatSession[] = res.data.data.map((c: any) => ({
         id: c.id,
-        title: (c.title || "Untitled").slice(0, MAX_TITLE_LEN),
+        title: truncateTitle(c.title || "Untitled"),
         updatedAt: c.lastUpdated,
       }));
       setChats(mapped);
@@ -83,14 +94,19 @@ export default function Sidebar({
   }, [fetchChats, pathname]);
 
   const filteredChats = useMemo(
-    () => chats.filter((c) => c.title.toLowerCase().includes(search.toLowerCase())),
+    () =>
+      chats.filter((c) => c.title.toLowerCase().includes(search.toLowerCase())),
     [search, chats]
   );
 
   const handleNewChat = async () => {
-    if(loadingNew) return;
+    if (loadingNew) return;
     router.push("/chatbot");
-    showToast({ type: "success", title: "Chat created", message: "Ready to start messaging." });
+    showToast({
+      type: "success",
+      title: "Chat created",
+      message: "Ready to start messaging.",
+    });
   };
 
   const startRename = useCallback((id: string, title: string) => {
@@ -98,22 +114,31 @@ export default function Sidebar({
     setEditingValue(title);
   }, []);
 
-  const performRename = useCallback(async (id: string, newTitle: string) => {
-    const oldChats = chats;
-    setChats((prev) => prev.map((c) => (c.id === id ? { ...c, title: newTitle } : c)));
-    try {
-      const res = await axios.put("/api/rename-conversation", {
-        conversationId: id,
-        title: newTitle
-      });
-      if (!res.data.success) throw new Error(res.data.message || "Failed");
-      showToast({ type: "success", title: "Renamed", message: "Conversation updated." });
-    } catch (e: any) {
-      const msg = e?.response?.data?.message || e.message || "Error";
-      setChats(oldChats);
-      showToast({ type: "error", title: "Rename failed", message: msg });
-    }
-  }, [chats, showToast]);
+  const performRename = useCallback(
+    async (id: string, newTitle: string) => {
+      const oldChats = chats;
+      setChats((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, title: newTitle } : c))
+      );
+      try {
+        const res = await axios.put("/api/rename-conversation", {
+          conversationId: id,
+          title: newTitle,
+        });
+        if (!res.data.success) throw new Error(res.data.message || "Failed");
+        showToast({
+          type: "success",
+          title: "Renamed",
+          message: "Conversation updated.",
+        });
+      } catch (e: any) {
+        const msg = e?.response?.data?.message || e.message || "Error";
+        setChats(oldChats);
+        showToast({ type: "error", title: "Rename failed", message: msg });
+      }
+    },
+    [chats, showToast]
+  );
 
   const commitRename = useCallback(() => {
     if (!editingId) return;
@@ -123,7 +148,7 @@ export default function Sidebar({
       setEditingValue("");
       return;
     }
-    const newTitle = raw.slice(0, MAX_TITLE_LEN);
+    const newTitle = truncateTitle(raw);
     setConfirmState({ type: "rename", id: editingId, newTitle });
   }, [editingId, editingValue]);
 
@@ -137,12 +162,19 @@ export default function Sidebar({
       const oldChats = chats;
       setChats((prev) => prev.filter((c) => c.id !== id));
       try {
-        const res = await axios.delete("/api/conversation", { data: { conversationId: id } });
+        const res = await axios.delete("/api/conversation", {
+          data: { conversationId: id },
+        });
         if (!res.data.success) throw new Error(res.data.message || "Failed");
-        showToast({ type: "success", title: "Deleted", message: "Conversation removed." });
+        showToast({
+          type: "success",
+          title: "Deleted",
+          message: "Conversation removed.",
+        });
         if (pathname.includes(id)) router.push("/chatbot");
       } catch (e: any) {
-        const msg = e?.response?.data?.message || (e as Error).message || "Error";
+        const msg =
+          e?.response?.data?.message || (e as Error).message || "Error";
         setChats(oldChats);
         showToast({ type: "error", title: "Delete failed", message: msg });
       }
@@ -181,15 +213,23 @@ export default function Sidebar({
   return (
     <>
       <aside
-        className={`group/sidebar fixed left-0 bottom-0 border-r border-white/10 bg-black/70 backdrop-blur-xl flex flex-col overflow-hidden transition-[width] duration-300 ease-[cubic-bezier(.25,.4,.25,1)] ${!expanded ? 'cursor-col-resize hover:cursor-col-resize' : 'cursor-pointer'} ${className}`}
+        className={`group/sidebar fixed left-0 bottom-0 border-r border-white/10 bg-black/70 backdrop-blur-xl flex flex-col overflow-hidden transition-[width] duration-300 ease-[cubic-bezier(.25,.4,.25,1)] ${
+          !expanded
+            ? "cursor-col-resize hover:cursor-col-resize"
+            : "cursor-pointer"
+        } ${className}`}
         style={{
           width: currentWidth,
           minWidth: currentWidth,
-          top: 'var(--nav-height, 56px)'
+          top: "var(--nav-height, 56px)",
         }}
         onClick={() => !expanded && setExpanded(true)}
       >
-        <div className={`relative flex items-center justify-center gap-2 border-b border-white/10 select-none ${expanded ? 'px-3 pt-3 pb-2' : 'px-2 py-3'}`}>
+        <div
+          className={`relative flex items-center justify-center gap-2 border-b border-white/10 select-none ${
+            expanded ? "px-3 pt-3 pb-2" : "px-2 py-3"
+          }`}
+        >
           {!expanded ? (
             <div className="relative w-8 h-8 group/logo">
               <Image
@@ -231,7 +271,10 @@ export default function Sidebar({
                 className="flex items-center justify-center w-8 h-8 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 text-neutral-300 hover:text-white transition ml-auto"
                 title="Collapse"
               >
-                <ChevronsLeftRight size={16} className="transition-transform rotate-180" />
+                <ChevronsLeftRight
+                  size={16}
+                  className="transition-transform rotate-180"
+                />
               </button>
             </>
           )}
@@ -261,9 +304,19 @@ export default function Sidebar({
                 </p>
               </div>
               <div className="px-1 mb-3 flex gap-2">
-                <NewChatButton onClick={handleNewChat} loading={loadingNew} expanded={expanded} />
-                <div className="relative flex-1" onClick={(e) => e.stopPropagation()}>
-                  <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-neutral-500" />
+                <NewChatButton
+                  onClick={handleNewChat}
+                  loading={loadingNew}
+                  expanded={expanded}
+                />
+                <div
+                  className="relative flex-1"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Search
+                    size={14}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 text-neutral-500"
+                  />
                   <input
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
@@ -272,7 +325,10 @@ export default function Sidebar({
                   />
                 </div>
               </div>
-              <div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent" onClick={(e) => e.stopPropagation()}>
+              <div
+                className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent"
+                onClick={(e) => e.stopPropagation()}
+              >
                 {filteredChats.length === 0 && (
                   <p className="text-neutral-500 text-xs px-2 py-4 text-center">
                     {search ? "No matches" : "No chats yet"}
@@ -294,23 +350,39 @@ export default function Sidebar({
                       onCommitRename={commitRename}
                       onCancelRename={cancelRename}
                       onDelete={requestDelete}
-                      confirmingRename={!!confirmState && confirmState.type === "rename" && confirmState.id === chat.id}
+                      confirmingRename={
+                        !!confirmState &&
+                        confirmState.type === "rename" &&
+                        confirmState.id === chat.id
+                      }
                     />
                   );
                 })}
               </div>
             </div>
-            
-            <div className="p-3 border-t border-white/10 text-center" onClick={(e) => e.stopPropagation()}>
+
+            <div
+              className="p-3 border-t border-white/10 text-center"
+              onClick={(e) => e.stopPropagation()}
+            >
               <p className="text-xs font-medium text-white mb-1">SophiaNet</p>
-              <p className="text-[10px] text-neutral-400">© 2025 All rights reserved</p>
+              <p className="text-[10px] text-neutral-400">
+                © 2025 All rights reserved
+              </p>
             </div>
           </>
         )}
 
         {!expanded && (
-          <div className="flex-1 flex flex-col items-center py-2 gap-6 mt-2 overflow-hidden" onClick={(e) => e.stopPropagation()}>
-            <NewChatButton onClick={handleNewChat} loading={loadingNew} expanded={expanded} />
+          <div
+            className="flex-1 flex flex-col items-center py-2 gap-6 mt-2 overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <NewChatButton
+              onClick={handleNewChat}
+              loading={loadingNew}
+              expanded={expanded}
+            />
             <div className="flex-1 w-full overflow-y-auto overflow-x-hidden px-1 space-y-4 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
               {chats.map((chat) => {
                 const active = pathname.includes(chat.id);
@@ -332,7 +404,11 @@ export default function Sidebar({
               })}
             </div>
             <div className="border-t border-white/10 pt-2">
-              <p className="text-[8px] text-neutral-500 writing-mode-vertical text-center" style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }} title="SophiaNet © 2025">
+              <p
+                className="text-[8px] text-neutral-500 writing-mode-vertical text-center"
+                style={{ writingMode: "vertical-rl", textOrientation: "mixed" }}
+                title="SophiaNet © 2025"
+              >
                 SN
               </p>
             </div>
