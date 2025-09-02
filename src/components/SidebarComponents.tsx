@@ -158,7 +158,7 @@ export function ChatItem({
             ? 'bg-indigo-400 shadow-[0_0_0_3px_rgba(99,102,241,0.25)]'
             : 'bg-neutral-500 group-hover:bg-neutral-400'
         }`} />
-        {!isEditing && <span className="flex-1 truncate">{chat.title}</span>}
+        {!isEditing && <span className="flex-1 truncate break-words">{chat.title}</span>}
         {isEditing && (
           <input
             autoFocus

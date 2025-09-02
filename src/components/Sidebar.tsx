@@ -7,6 +7,8 @@ import { ToolButton, NewChatButton, ChatItem } from "./SidebarComponents";
 import { useToast } from "@/providers/ToastProvider";
 import axios, { AxiosError } from "axios";
 
+const MAX_TITLE_LEN = 28;
+
 interface SidebarItem {
   name: string;
   icon: any;
@@ -59,22 +61,19 @@ export default function Sidebar({
       if (!res.data.success) throw new Error(res.data.message || "Failed");
       const mapped: ChatSession[] = res.data.data.map((c: any) => ({
         id: c.id,
-        title: c.title,
+        title: (c.title || "Untitled").slice(0, MAX_TITLE_LEN),
         updatedAt: c.lastUpdated,
       }));
       setChats(mapped);
     } catch (e: any) {
-      const msg =
-        (e)?.response?.data?.message ||
-        (e as Error).message ||
-        "Error";
+      const msg = e?.response?.data?.message || e.message || "Error";
       showToast({ type: "error", title: "Failed to load chats", message: msg });
     }
   }, [showToast]);
 
   useEffect(() => {
     fetchChats();
-  }, [fetchChats]);
+  }, [fetchChats, pathname]);
 
   const filteredChats = useMemo(
     () => chats.filter((c) => c.title.toLowerCase().includes(search.toLowerCase())),
@@ -87,14 +86,15 @@ export default function Sidebar({
     try {
       const res = await axios.post("/api/conversation", { title: "New Chat" });
       if (!res.data.success) throw new Error(res.data.message || "Failed");
-      setChats((prev) => [{ id: res.data.data.id, title: res.data.data.title, updatedAt: res.data.data.lastUpdated }, ...prev]);
+      setChats((prev) => [...prev, {
+        id: res.data.data.id,
+        title: (res.data.data.title || "New Chat").slice(0, MAX_TITLE_LEN),
+        updatedAt: res.data.data.lastUpdated
+      }]);
       router.push(`/chatbot/c/${res.data.data.id}`);
       showToast({ type: "success", title: "Chat created", message: "Ready to start messaging." });
     } catch (e: any) {
-      const msg =
-        (e)?.response?.data?.message ||
-        (e as Error).message ||
-        "Error";
+      const msg = e?.response?.data?.message || e.message || "Error";
       showToast({ type: "error", title: "Create failed", message: msg });
     } finally {
       setLoadingNew(false);
@@ -108,12 +108,13 @@ export default function Sidebar({
 
   const commitRename = useCallback(async () => {
     if (!editingId) return;
-    const newTitle = editingValue.trim();
-    if (!newTitle) {
+    const newTitleRaw = editingValue.trim();
+    if (!newTitleRaw) {
       setEditingId(null);
       setEditingValue("");
       return;
     }
+    const newTitle = newTitleRaw.slice(0, MAX_TITLE_LEN);
     const oldChats = chats;
     setChats((prev) => prev.map((c) => (c.id === editingId ? { ...c, title: newTitle } : c)));
     setEditingId(null);
@@ -126,10 +127,7 @@ export default function Sidebar({
       if (!res.data.success) throw new Error(res.data.message || "Failed");
       showToast({ type: "success", title: "Renamed", message: "Conversation updated." });
     } catch (e: any) {
-      const msg =
-        (e)?.response?.data?.message ||
-        (e as Error).message ||
-        "Error";
+      const msg = e?.response?.data?.message || e.message || "Error";
       setChats(oldChats);
       showToast({ type: "error", title: "Rename failed", message: msg });
     }

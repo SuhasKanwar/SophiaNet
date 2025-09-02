@@ -16,7 +16,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 			<Navbar />
 			<Sidebar items={sidebarLinks} />
 			<div
-				className="flex flex-col flex-1 min-h-0 overflow-hidden transition-[margin] duration-300"
+				className="flex flex-col flex-1 min-h-[90vh] overflow-hidden transition-[margin] duration-300"
 				style={{ marginLeft: "var(--sidebar-width, 60px)" }}
 			>
 				{children}
