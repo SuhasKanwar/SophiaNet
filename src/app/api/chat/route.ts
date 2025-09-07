@@ -3,6 +3,8 @@ import { authOptions } from "../auth/[...nextauth]/options";
 import { prisma } from "@/lib/prisma";
 import { sendMessageSchema, getMessagesSchema, deleteMessageSchema } from "@/lib/schema";
 import { SUPPORTED_FILE_TYPES, FileType } from "@/types/files";
+// removed axios; using fetch with FormData to call microservice
+import { MICROSERVICE_BASE_URL } from "@/lib/config";
 
 export async function GET(request: Request) {
     const session = await getServerSession(authOptions);
@@ -104,10 +106,16 @@ export async function POST(request: Request) {
         const contentType = request.headers.get("content-type") || "";
         let body: any;
         let files: File[] = [];
+        let sessionHistory: unknown = [];
+
         if (contentType.includes("multipart/form-data")) {
             const form = await request.formData();
             const conversationId = form.get("conversationId");
             const content = form.get("content");
+            const historyRaw = form.get("history");
+            if (typeof historyRaw === "string") {
+                try { sessionHistory = JSON.parse(historyRaw); } catch { sessionHistory = []; }
+            }
             files = form.getAll("files").filter(f => typeof f === "object") as File[];
             const allowed = new Set<FileType>(SUPPORTED_FILE_TYPES);
             const invalid = files.filter(f => {
@@ -127,6 +135,7 @@ export async function POST(request: Request) {
             body = { conversationId, content };
         } else {
             body = await request.json();
+            sessionHistory = body?.history ?? [];
         }
 
         const validatedData = sendMessageSchema.parse(body);
@@ -152,18 +161,43 @@ export async function POST(request: Request) {
             data: { lastUpdated: new Date() }
         });
 
-        const fileNote = files.length
-            ? ` (Received files: ${files.map(f => f.name).join(", ")})`
-            : "";
+        const history = Array.isArray(sessionHistory)
+            ? sessionHistory.map((m: any) => ({
+                id: m?.id ?? undefined,
+                role: m?.role ?? (m?.sender === 'user' ? 'user' : 'assistant'),
+                content: m?.content ?? m?.text ?? '',
+                createdAt: m?.createdAt ?? undefined
+            })).filter((m: any) => typeof m.content === 'string' && m.content.length > 0)
+            : [];
 
-        // TODO: Implement bot response generation
-        const botResponse = `This is a bot response to: "${validatedData.content}"${fileNote}`;
+        const msForm = new FormData();
+        msForm.append("conversationId", validatedData.conversationId);
+        msForm.append("prompt", validatedData.content);
+        msForm.append("session_history", JSON.stringify(history));
+        for (const f of files) {
+            msForm.append("files", f, f.name);
+        }
+
+        const msRes = await fetch(`${MICROSERVICE_BASE_URL}/generate-chat`, {
+            method: "POST",
+            body: msForm
+        });
+
+        if (!msRes.ok) {
+            const errText = await msRes.text().catch(() => "");
+            throw new Error(`Upstream error ${msRes.status}: ${msRes.statusText}${errText ? ` - ${errText}` : ""}`);
+        }
+
+        let replyText = await msRes.json();
+        if (!replyText) {
+            replyText = "I'm sorry, I couldn't generate a response.";
+        }
 
         const botMessage = await prisma.message.create({
             data: {
                 conversationId: validatedData.conversationId,
                 sender: 'bot',
-                content: botResponse
+                content: replyText
             }
         });
 

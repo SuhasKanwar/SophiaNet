@@ -64,22 +64,32 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
     if (!input.trim() || loading) return;
     setLoading(true);
     setError(null);
+
+    const sessionHistory = messages.map((m) => ({
+      id: m.id,
+      role: m.sender === "user" ? "user" : "assistant",
+      content: m.text,
+      createdAt: m.createdAt,
+    }));
+
     const optimistic: ChatMessage = { id: "temp-" + Date.now(), sender: "user", text: input };
     const content = input;
     setInput("");
     setMessages(p => [...p, optimistic]);
+
     try {
       let res;
       if (selectedFiles.length > 0) {
         const fd = new FormData();
         fd.append("conversationId", chatID);
         fd.append("content", content);
+        fd.append("history", JSON.stringify(sessionHistory));
         selectedFiles.forEach(f => fd.append("files", f));
         res = await axios.post("/api/chat", fd, {
           headers: { "Content-Type": "multipart/form-data" }
         });
       } else {
-        res = await axios.post("/api/chat", { conversationId: chatID, content });
+        res = await axios.post("/api/chat", { conversationId: chatID, content: content, history: sessionHistory });
       }
       if (!res.data.success) throw new Error(res.data.message || "Failed to send");
       setMessages(prev => {

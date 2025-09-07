@@ -1,5 +1,6 @@
 import ChatbotClient from "@/components/ChatbotClient";
 
-export default function ChatPage({ params }: { params: { chatID: string } }) {
-  return <ChatbotClient chatID={params.chatID} />;
+export default async function ChatPage({ params }: { params: { chatID: string } }) {
+  const chatID = await (params).chatID;
+  return <ChatbotClient chatID={chatID} />;
 }
