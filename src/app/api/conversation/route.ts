@@ -31,7 +31,7 @@ export async function GET(request: Request) {
                 lastUpdated: true,
                 _count: {
                     select: {
-                        messages: true
+                        chats: true
                     }
                 }
             },

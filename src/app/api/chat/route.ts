@@ -58,7 +58,7 @@ export async function GET(request: Request) {
             );
         }
 
-        const messages = await prisma.message.findMany({
+        const messages = await prisma.chat.findMany({
             where: {
                 conversationId: validatedData.conversationId
             },
@@ -148,7 +148,7 @@ export async function POST(request: Request) {
             return Response.json({ success: false, message: "Conversation not found" }, { status: 404 });
         }
 
-        const userMessage = await prisma.message.create({
+        const userMessage = await prisma.chat.create({
             data: {
                 conversationId: validatedData.conversationId,
                 sender: 'user',
@@ -180,7 +180,11 @@ export async function POST(request: Request) {
 
         const msRes = await fetch(`${MICROSERVICE_BASE_URL}/generate-chat`, {
             method: "POST",
-            body: msForm
+            body: JSON.stringify({
+                prompt: "testing",
+                session_history: [],
+                files: []
+            })
         });
 
         if (!msRes.ok) {
@@ -188,12 +192,12 @@ export async function POST(request: Request) {
             throw new Error(`Upstream error ${msRes.status}: ${msRes.statusText}${errText ? ` - ${errText}` : ""}`);
         }
 
-        let replyText = await msRes.json();
+        let replyText = (await msRes.json()).response;
         if (!replyText) {
             replyText = "I'm sorry, I couldn't generate a response.";
         }
 
-        const botMessage = await prisma.message.create({
+        const botMessage = await prisma.chat.create({
             data: {
                 conversationId: validatedData.conversationId,
                 sender: 'bot',
@@ -240,7 +244,7 @@ export async function DELETE(request: Request) {
         const body = await request.json();
         const validatedData = deleteMessageSchema.parse(body);
 
-        const message = await prisma.message.findFirst({
+        const message = await prisma.chat.findFirst({
             where: {
                 id: validatedData.messageId
             },
@@ -273,7 +277,7 @@ export async function DELETE(request: Request) {
             );
         }
 
-        await prisma.message.delete({
+        await prisma.chat.delete({
             where: {
                 id: validatedData.messageId
             }

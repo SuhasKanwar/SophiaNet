@@ -36,14 +36,14 @@ model Conversation {
   isArchived  Boolean  @default(true)
 
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  messages Message[]
+  chats    Chat[]
 
   @@index([userId])
   @@index([lastUpdated])
   @@index([isArchived])
 }
 
-model Message {
+model Chat {
   id             String   @id @default(uuid())
   conversationId String
   sender         Sender
