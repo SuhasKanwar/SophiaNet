@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Loader2, Mic, Send, UploadCloud, Bot, X } from "lucide-react";
+import { Loader2, Mic, Send, UploadCloud, Bot } from "lucide-react";
 import SuggestionCard from "@/components/SuggestionCard";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { useFileSelection } from "@/hooks/useFileSelection";
 import { ACCEPT_FILE_TYPES } from "@/types/files";
+import FileIconTag from "@/components/FileIconTag";
 
 interface ChatMessage {
   id: number;
@@ -157,9 +158,6 @@ export default function DashboardPage() {
             <h1 className="text-4xl md:text-5xl font-bold text-center mb-4">
               <span className="text-white">Sophia</span>
               <span className="text-indigo-400">Net Assistant</span>
-              <span className="ml-2">
-                <Bot className="inline w-9 h-9 text-indigo-400 align-middle" />
-              </span>
             </h1>
             <p className="text-sm md:text-base text-neutral-400 text-center mb-8 max-w-2xl">
               Ask questions about your learning materials, request summaries,
@@ -233,29 +231,14 @@ export default function DashboardPage() {
       <div className="fixed z-10 bottom-0 left-[calc(var(--sidebar-width,60px))] right-0">
         <div className="w-full max-w-3xl mx-auto px-3 pb-3">
           {selectedFiles.length > 0 && (
-            <div className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 mb-2 space-y-1 max-h-36 overflow-y-auto">
-              {selectedFiles.map((f, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between text-xs"
-                >
-                  <span className="truncate max-w-[80%] text-neutral-300">
-                    {f.name}
-                  </span>
-                  <button
-                    onClick={() => removeAt(i)}
-                    className="p-1 rounded hover:bg-white/10 text-neutral-400 hover:text-white"
-                    title="Remove file"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
+            <div className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 mb-2 space-y-2 max-h-36 overflow-y-auto">
+              <div className="flex flex-wrap gap-2">
+                {selectedFiles.map((f, i) => (
+                  <FileIconTag key={i} name={f.name} onRemove={() => removeAt(i)} />
+                ))}
+              </div>
               <div className="flex justify-end">
-                <button
-                  onClick={clearFiles}
-                  className="text-[10px] text-red-400 hover:underline"
-                >
+                <button onClick={clearFiles} className="text-[10px] text-red-400 hover:underline">
                   Clear all
                 </button>
               </div>

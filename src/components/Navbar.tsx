@@ -49,11 +49,11 @@ export default function Navbar() {
   }, []);
 
   const NAV_LINKS = [
-    { href: "#features", label: "Features" },
-    { href: "#functionalities", label: "Functionalities" },
-    { href: "#ai-processing-pipeline", label: "AI" },
-    { href: "#dip-workflow", label: "DIP" },
-    { href: "#contact-us", label: "Contact" },
+    { href: "/#features", label: "Features" },
+    { href: "/#functionalities", label: "Functionalities" },
+    { href: "/#ai-processing-pipeline", label: "AI" },
+    { href: "/#dip-workflow", label: "DIP" },
+    { href: "/#contact-us", label: "Contact" },
   ];
 
   return (

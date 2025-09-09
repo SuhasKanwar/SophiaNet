@@ -1,16 +1,18 @@
 "use client";
 import { useEffect, useRef, useState, useCallback } from "react";
-import { Loader2, Mic, Send, UploadCloud, Bot, X } from "lucide-react";
+import { Loader2, Mic, Send, UploadCloud, Bot } from "lucide-react";
 import axios from "axios";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { useFileSelection } from "@/hooks/useFileSelection";
 import { ACCEPT_FILE_TYPES } from "@/types/files";
+import FileIconTag from "@/components/FileIconTag";
 
 interface ChatMessage {
   id: string;
   sender: "user" | "bot";
   text: string;
   createdAt?: string;
+  attachments?: string[]; // added
 }
 
 interface ChatbotClientProps {
@@ -72,10 +74,17 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
       createdAt: m.createdAt,
     }));
 
-    const optimistic: ChatMessage = { id: "temp-" + Date.now(), sender: "user", text: input };
     const content = input;
+    const attachments = selectedFiles.map((f) => f.name);
+    const optimistic: ChatMessage = {
+      id: "temp-" + Date.now(),
+      sender: "user",
+      text: content,
+      attachments: attachments.length ? attachments : undefined,
+    };
+
     setInput("");
-    setMessages(p => [...p, optimistic]);
+    setMessages((p) => [...p, optimistic]);
 
     try {
       let res;
@@ -84,24 +93,37 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
         fd.append("conversationId", chatID);
         fd.append("content", content);
         fd.append("history", JSON.stringify(sessionHistory));
-        selectedFiles.forEach(f => fd.append("files", f));
+        selectedFiles.forEach((f) => fd.append("files", f));
         res = await axios.post("/api/chat", fd, {
-          headers: { "Content-Type": "multipart/form-data" }
+          headers: { "Content-Type": "multipart/form-data" },
         });
       } else {
-        res = await axios.post("/api/chat", { conversationId: chatID, content: content, history: sessionHistory });
+        res = await axios.post("/api/chat", {
+          conversationId: chatID,
+          content: content,
+          history: sessionHistory,
+        });
       }
       if (!res.data.success) throw new Error(res.data.message || "Failed to send");
-      setMessages(prev => {
-        const without = prev.filter(m => m.id !== optimistic.id);
+      setMessages((prev) => {
+        const without = prev.filter((m) => m.id !== optimistic.id);
         return [
           ...without,
-          { id: res.data.data.userMessage.id, sender: res.data.data.userMessage.sender, text: res.data.data.userMessage.content },
-          { id: res.data.data.botMessage.id, sender: res.data.data.botMessage.sender, text: res.data.data.botMessage.content }
+          {
+            id: res.data.data.userMessage.id,
+            sender: res.data.data.userMessage.sender,
+            text: res.data.data.userMessage.content,
+            attachments: attachments.length ? attachments : undefined,
+          },
+          {
+            id: res.data.data.botMessage.id,
+            sender: res.data.data.botMessage.sender,
+            text: res.data.data.botMessage.content,
+          },
         ];
       });
     } catch (e: any) {
-      setMessages(prev => prev.filter(m => m.id !== optimistic.id));
+      setMessages((prev) => prev.filter((m) => m.id !== optimistic.id));
       setInput(content);
       setError(e?.response?.data?.message || e.message || "Failed to send message");
     } finally {
@@ -131,14 +153,23 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
                   <Bot className="w-4 h-4 text-indigo-300" />
                 </div>
               )}
-              <div
-                className={`max-w-[70%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow backdrop-blur border ${
-                  m.sender === "user"
-                    ? "bg-indigo-500/20 border-indigo-400/30 text-indigo-50"
-                    : "bg-white/5 border-white/10 text-neutral-200"
-                }`}
-              >
-                {m.text}
+              <div className={`flex flex-col ${m.sender === "user" ? "items-end" : "items-start"} max-w-[70%]`}>
+                <div
+                  className={`rounded-2xl px-4 py-3 text-sm leading-relaxed shadow backdrop-blur border ${
+                    m.sender === "user"
+                      ? "bg-indigo-500/20 border-indigo-400/30 text-indigo-50"
+                      : "bg-white/5 border-white/10 text-neutral-200"
+                  }`}
+                >
+                  {m.text}
+                </div>
+                {m.attachments?.length ? (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {m.attachments.map((name, i) => (
+                      <FileIconTag key={i} name={name} />
+                    ))}
+                  </div>
+                ) : null}
               </div>
               {m.sender === "user" && (
                 <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center border border-indigo-400/30 shrink-0">
@@ -156,23 +187,15 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
         </div>
       </div>
 
-      {/* Fixed input bar */}
       <div className="fixed z-10 bottom-0 left-[calc(var(--sidebar-width,60px))] right-0">
         <div className="w-full max-w-3xl mx-auto px-3 pb-3">
           {selectedFiles.length > 0 && (
-            <div className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 mb-2 space-y-1 max-h-36 overflow-y-auto">
-              {selectedFiles.map((f, i) => (
-                <div key={i} className="flex items-center justify-between text-xs">
-                  <span className="truncate max-w-[80%] text-neutral-300">{f.name}</span>
-                  <button
-                    onClick={() => removeAt(i)}
-                    className="p-1 rounded hover:bg-white/10 text-neutral-400 hover:text-white"
-                    title="Remove file"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
+            <div className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 mb-2 space-y-2 max-h-36 overflow-y-auto">
+              <div className="flex flex-wrap gap-2">
+                {selectedFiles.map((f, i) => (
+                  <FileIconTag key={i} name={f.name} onRemove={() => removeAt(i)} />
+                ))}
+              </div>
               <div className="flex justify-end">
                 <button onClick={clearFiles} className="text-[10px] text-red-400 hover:underline">Clear all</button>
               </div>

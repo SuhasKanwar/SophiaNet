@@ -178,14 +178,23 @@ export async function POST(request: Request) {
             msForm.append("files", f, f.name);
         }
 
-        const msRes = await fetch(`${MICROSERVICE_BASE_URL}/generate-chat`, {
-            method: "POST",
-            body: JSON.stringify({
-                prompt: "testing",
-                session_history: [],
-                files: []
-            })
-        });
+        let msRes: Response;
+        if (files.length > 0) {
+            msRes = await fetch(`${MICROSERVICE_BASE_URL}/generate-chat`, {
+                method: "POST",
+                body: msForm
+            });
+        } else {
+            msRes = await fetch(`${MICROSERVICE_BASE_URL}/generate-chat`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    prompt: validatedData.content,
+                    session_history: history,
+                    files: []
+                })
+            });
+        }
 
         if (!msRes.ok) {
             const errText = await msRes.text().catch(() => "");
