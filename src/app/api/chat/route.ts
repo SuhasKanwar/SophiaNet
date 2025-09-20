@@ -180,12 +180,12 @@ export async function POST(request: Request) {
 
         let msRes: Response;
         if (files.length > 0) {
-            msRes = await fetch(`${MICROSERVICE_BASE_URL}/generate-chat`, {
+            msRes = await fetch(`${MICROSERVICE_BASE_URL}/generate`, {
                 method: "POST",
                 body: msForm
             });
         } else {
-            msRes = await fetch(`${MICROSERVICE_BASE_URL}/generate-chat`, {
+            msRes = await fetch(`${MICROSERVICE_BASE_URL}/generate`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

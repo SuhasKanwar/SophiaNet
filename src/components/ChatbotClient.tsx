@@ -12,7 +12,7 @@ interface ChatMessage {
   sender: "user" | "bot";
   text: string;
   createdAt?: string;
-  attachments?: string[]; // added
+  attachments?: string[];
 }
 
 interface ChatbotClientProps {
@@ -136,7 +136,6 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
     <section className="flex flex-col w-full px-3 pt-4 pb-3 items-center" style={{ height: "calc(99vh - var(--navbar-height,64px))" }}>
       <style>{`.hide-scrollbar::-webkit-scrollbar{display:none}.hide-scrollbar{scrollbar-width:none;-ms-overflow-style:none}`}</style>
       <div className="w-full max-w-6xl h-full flex flex-col mx-auto pb-[130px]">
-        {/* added bottom padding space so fixed input won't cover messages */}
         <div ref={chatContainerRef} className="flex-1 w-full mx-auto mb-2 overflow-y-auto hide-scrollbar space-y-6 px-1" style={{ minHeight: 0 }}>
           {initialLoading && (
             <div className="flex items-center gap-2 text-sm text-neutral-400">
