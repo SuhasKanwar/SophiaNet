@@ -1,12 +1,13 @@
 "use client";
-import { useEffect, useRef, useState, useCallback, useMemo } from "react";
-import { Loader2, Mic, Send, UploadCloud, Bot } from "lucide-react";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { Loader2, Mic, Send, UploadCloud, Bot, Copy, Check } from "lucide-react";
 import axios from "axios";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { useFileSelection } from "@/hooks/useFileSelection";
 import { ACCEPT_FILE_TYPES } from "@/types/files";
 import FileIconTag from "@/components/FileIconTag";
-import MarkdownIt from "markdown-it";
+import { renderMarkdownWithCodeBlocks } from "@/lib/utils";
+import { useToast } from "@/providers/ToastProvider";
 
 interface ChatMessage {
   id: string;
@@ -26,7 +27,11 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const lastMessageRef = useRef<HTMLDivElement>(null);
+
+  const { showToast } = useToast();
 
   const { files: selectedFiles, trigger: triggerFile, clearAll: clearFiles, removeAt, inputProps } =
     useFileSelection(ACCEPT_FILE_TYPES);
@@ -36,19 +41,18 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
     onError: (m) => setError(m),
   });
 
-  const md = useMemo(
-    () =>
-      new MarkdownIt({
-        html: false,
-        linkify: true,
-        breaks: true,
-      }),
-    []
-  );
-
   useEffect(() => {
-    if (chatContainerRef.current)
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    const scrollToBottom = () => {
+      if (lastMessageRef.current) {
+        lastMessageRef.current.scrollIntoView({ 
+          behavior: "smooth", 
+          block: "start"
+        });
+      }
+    };
+
+    const timeoutId = setTimeout(scrollToBottom, 100);
+    return () => clearTimeout(timeoutId);
   }, [messages, loading]);
 
   const fetchMessages = useCallback(async () => {
@@ -143,10 +147,25 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
     }
   };
 
+  const copyToClipboard = async (text: string, messageId: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedMessageId(messageId);
+      showToast({
+        type: "info",
+        title: "Copied to clipboard",
+        message: "Message copied successfully",
+        duration: 2000
+      });
+      setTimeout(() => setCopiedMessageId(null), 2000);
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+    }
+  };
+
   return (
-    <section className="flex flex-col w-full px-3 pt-4 pb-3 items-center" style={{ height: "calc(99vh - var(--navbar-height,64px))" }}>
-      <style>{`.hide-scrollbar::-webkit-scrollbar{display:none}.hide-scrollbar{scrollbar-width:none;-ms-overflow-style:none}`}</style>
-      <div className="w-full max-w-6xl h-full flex flex-col mx-auto pb-[130px]">
+    <section className="flex flex-col w-full px-3 pt-4 items-center h-full mt-[var(--navbar-height,64px)]">
+      <div className="w-full max-w-6xl h-full flex flex-col mx-auto pb-[100px]">
         <div ref={chatContainerRef} className="flex-1 w-full mx-auto mb-2 overflow-y-auto hide-scrollbar space-y-6 px-1" style={{ minHeight: 0 }}>
           {initialLoading && (
             <div className="flex items-center gap-2 text-sm text-neutral-400">
@@ -156,25 +175,41 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
           {!initialLoading && messages.length === 0 && (
             <div className="text-neutral-500 text-sm">No messages yet. Start the conversation.</div>
           )}
-          {messages.map((m) => (
-            <div key={m.id} className={`flex gap-3 ${m.sender === "user" ? "justify-end" : "justify-start"}`}>
+          {messages.map((m, index) => (
+            <div 
+              key={m.id} 
+              ref={index === messages.length - 1 ? lastMessageRef : null}
+              className={`flex gap-3 ${m.sender === "user" ? "justify-end" : "justify-start"}`}
+            >
               {m.sender === "bot" && (
                 <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center border border-indigo-400/30 shrink-0">
                   <Bot className="w-4 h-4 text-indigo-300" />
                 </div>
               )}
               <div className={`flex flex-col ${m.sender === "user" ? "items-end" : "items-start"} max-w-[70%]`}>
-                <div
-                  className={`rounded-2xl px-4 py-3 text-sm leading-relaxed shadow backdrop-blur border ${
-                    m.sender === "user"
-                      ? "bg-indigo-500/20 border-indigo-400/30 text-indigo-50"
-                      : "bg-white/5 border-white/10 text-neutral-200"
-                  }`}
-                >
-                  {/* Render markdown */}
+                <div className="relative group">
                   <div
-                    dangerouslySetInnerHTML={{ __html: md.render(m.text || "") }}
-                  />
+                    className={`rounded-2xl px-4 py-3 text-sm leading-relaxed shadow backdrop-blur border ${
+                      m.sender === "user"
+                        ? "bg-indigo-500/20 border-indigo-400/30 text-indigo-50"
+                        : "bg-white/5 border-white/10 text-neutral-200"
+                    }`}
+                  >
+                    {renderMarkdownWithCodeBlocks(m.text || "")}
+                  </div>
+                  {m.sender === "bot" && (
+                    <button
+                      onClick={() => copyToClipboard(m.text, m.id)}
+                      className="absolute top-2 right-2 p-1 rounded-md bg-white/10 hover:bg-white/20 text-neutral-400 hover:text-neutral-200 opacity-0 group-hover:opacity-100 transition-opacity duration-200 border border-white/10"
+                      title="Copy message"
+                    >
+                      {copiedMessageId === m.id ? (
+                        <Check className="w-3 h-3 text-green-400" />
+                      ) : (
+                        <Copy className="w-3 h-3" />
+                      )}
+                    </button>
+                  )}
                 </div>
                 {m.attachments?.length ? (
                   <div className="mt-2 flex flex-wrap gap-2">
@@ -192,7 +227,7 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
             </div>
           ))}
           {loading && (
-            <div className="flex items-center gap-2 text-sm text-neutral-400">
+            <div ref={lastMessageRef} className="flex items-center gap-2 text-sm text-neutral-400">
               <Loader2 className="w-4 h-4 animate-spin" /> Generating response...
             </div>
           )}
@@ -200,8 +235,8 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
         </div>
       </div>
 
-      <div className="fixed z-10 bottom-0 left-[calc(var(--sidebar-width,60px))] right-0">
-        <div className="w-full max-w-3xl mx-auto px-3 pb-3">
+      <div className="fixed z-10 bottom-0 left-[calc(var(--sidebar-width,60px))] right-0 p-2">
+        <div className="w-full max-w-3xl mx-auto">
           {selectedFiles.length > 0 && (
             <div className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 mb-2 space-y-2 max-h-36 overflow-y-auto">
               <div className="flex flex-wrap gap-2">
@@ -253,7 +288,7 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
             </button>
           </div>
-          <div className="text-[11px] text-neutral-500 text-center mt-2">
+          <div className="text-[11px] text-neutral-500 text-center mt-1">
             Conversation ID: {chatID}
           </div>
         </div>

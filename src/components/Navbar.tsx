@@ -58,7 +58,7 @@ export default function Navbar() {
 
   return (
     <motion.nav
-      className="sticky top-0 z-50 backdrop-blur-md bg-black/60 border-b border-white/10"
+      className="fixed top-0 z-50 w-screen backdrop-blur-md bg-black/60 border-b border-white/10"
       style={{
         backdropFilter: `blur(${navbarBlur}px)`,
         backgroundColor: `rgba(0, 0, 0, ${navbarOpacity})`,

@@ -147,14 +147,10 @@ export default function DashboardPage() {
   const handleSuggestion = (q: string) => setInput(q);
 
   return (
-    <section
-      className="flex flex-col w-full px-3 pt-4 pb-3 items-center"
-      style={{ height: "calc(99vh - var(--navbar-height,64px))" }}
-    >
-      <style>{`.hide-scrollbar::-webkit-scrollbar{display:none}.hide-scrollbar{scrollbar-width:none;-ms-overflow-style:none}`}</style>
+    <section className="flex flex-col w-full px-3 pt-4 pb-3 items-center min-h-screen overflow-hidden">
       <div className="w-full max-w-6xl h-full flex flex-col mx-auto pb-[130px]">
         {messages.length === 0 && !loading && (
-          <div className="flex flex-col items-center justify-center mt-2 mb-4 w-full mx-auto flex-1 overflow-y-auto hide-scrollbar">
+          <div className="flex flex-col items-center justify-center mt-2 mb-4 w-full mx-auto flex-1 overflow-y-auto hide-scrollbar min-h-[calc(100vh-200px)]">
             <h1 className="text-4xl md:text-5xl font-bold text-center mb-4">
               <span className="text-white">Sophia</span>
               <span className="text-indigo-400">Net Assistant</span>
