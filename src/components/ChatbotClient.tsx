@@ -189,7 +189,7 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
               <div className={`flex flex-col ${m.sender === "user" ? "items-end" : "items-start"} max-w-[70%]`}>
                 <div className="relative group">
                   <div
-                    className={`rounded-2xl px-4 py-3 text-sm leading-relaxed shadow backdrop-blur border ${
+                    className={`rounded-2xl px-4 py-3 text-sm leading-loose shadow backdrop-blur border ${
                       m.sender === "user"
                         ? "bg-indigo-500/20 border-indigo-400/30 text-indigo-50"
                         : "bg-white/5 border-white/10 text-neutral-200"

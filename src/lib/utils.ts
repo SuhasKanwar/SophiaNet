@@ -87,6 +87,7 @@ export function renderMarkdownWithCodeBlocks(markdown: string): React.ReactNode[
       const htmlContent = md.render(match.content);
       return React.createElement('div', {
         key: index,
+        className: 'space-y-2 leading-relaxed',
         dangerouslySetInnerHTML: { __html: htmlContent }
       });
     }
