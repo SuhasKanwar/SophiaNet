@@ -1,11 +1,12 @@
 "use client";
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { Loader2, Mic, Send, UploadCloud, Bot } from "lucide-react";
 import axios from "axios";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { useFileSelection } from "@/hooks/useFileSelection";
 import { ACCEPT_FILE_TYPES } from "@/types/files";
 import FileIconTag from "@/components/FileIconTag";
+import MarkdownIt from "markdown-it";
 
 interface ChatMessage {
   id: string;
@@ -34,6 +35,16 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
     onResult: (t) => setInput(t),
     onError: (m) => setError(m),
   });
+
+  const md = useMemo(
+    () =>
+      new MarkdownIt({
+        html: false,
+        linkify: true,
+        breaks: true,
+      }),
+    []
+  );
 
   useEffect(() => {
     if (chatContainerRef.current)
@@ -160,7 +171,10 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
                       : "bg-white/5 border-white/10 text-neutral-200"
                   }`}
                 >
-                  {m.text}
+                  {/* Render markdown */}
+                  <div
+                    dangerouslySetInnerHTML={{ __html: md.render(m.text || "") }}
+                  />
                 </div>
                 {m.attachments?.length ? (
                   <div className="mt-2 flex flex-wrap gap-2">
