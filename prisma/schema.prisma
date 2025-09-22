@@ -14,6 +14,11 @@ enum Sender {
   system
 }
 
+enum ChatType {
+  text
+  image
+}
+
 model User {
   id            String         @id
   email         String?        @unique
@@ -33,10 +38,10 @@ model Conversation {
   title       String?
   startedAt   DateTime @default(now())
   lastUpdated DateTime @updatedAt
-  isArchived  Boolean  @default(true)
+  isArchived  Boolean  @default(false)
 
-  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  chats    Chat[]
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chats Chat[]
 
   @@index([userId])
   @@index([lastUpdated])
@@ -45,9 +50,11 @@ model Conversation {
 
 model Chat {
   id             String   @id @default(uuid())
+  type           ChatType @default(text)
   conversationId String
   sender         Sender
-  content        String
+  content        String?
+  imageUrl       String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
