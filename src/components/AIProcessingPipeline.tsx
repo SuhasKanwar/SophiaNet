@@ -179,7 +179,7 @@ export default function AIProcessingPipeline() {
                   
                   {index < processingSteps.length - 1 && (
                     <motion.div
-                      className="hidden lg:block w-40 h-px bg-gradient-to-r from-indigo-500/50 to-purple-500/50 mx-4"
+                      className="hidden lg:block w-32 h-px bg-gradient-to-r from-indigo-500/50 to-purple-500/50 mx-4"
                       initial={{ scaleX: 0 }}
                       animate={isInView ? { scaleX: 1 } : { scaleX: 0 }}
                       transition={{ duration: 0.5, delay: 1.2 + index * 0.2 }}
