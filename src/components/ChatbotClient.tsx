@@ -8,6 +8,7 @@ import { ACCEPT_FILE_TYPES } from "@/types/files";
 import FileIconTag from "@/components/FileIconTag";
 import { renderMarkdownWithCodeBlocks } from "@/lib/utils";
 import { useToast } from "@/providers/ToastProvider";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface ChatMessage {
   id: string;
@@ -168,8 +169,43 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
       <div className="w-full max-w-6xl h-full flex flex-col mx-auto pb-[100px]">
         <div ref={chatContainerRef} className="flex-1 w-full mx-auto mb-2 overflow-y-auto hide-scrollbar space-y-6 px-1" style={{ minHeight: 0 }}>
           {initialLoading && (
-            <div className="flex items-center gap-2 text-sm text-neutral-400">
-              <Loader2 className="w-4 h-4 animate-spin" /> Loading conversation...
+            <div className="space-y-6">
+              <div className="flex gap-3 justify-end">
+                <div className="flex flex-col items-end max-w-[70%]">
+                  <div className="rounded-2xl px-4 py-3 bg-indigo-500/20 border border-indigo-400/30">
+                    <Skeleton className="h-4 w-32" />
+                  </div>
+                </div>
+                <Skeleton className="w-8 h-8 rounded-full" />
+              </div>
+              <div className="flex gap-3 justify-start">
+                <Skeleton className="w-8 h-8 rounded-full" />
+                <div className="flex flex-col items-start max-w-[70%]">
+                  <div className="rounded-2xl px-4 py-3 bg-white/5 border border-white/10">
+                    <Skeleton className="h-4 w-80 mb-2" />
+                    <Skeleton className="h-4 w-60 mb-2" />
+                    <Skeleton className="h-4 w-40" />
+                  </div>
+                </div>
+              </div>
+              <div className="flex gap-3 justify-end">
+                <div className="flex flex-col items-end max-w-[70%]">
+                  <div className="rounded-2xl px-4 py-3 bg-indigo-500/20 border border-indigo-400/30">
+                    <Skeleton className="h-4 w-32" />
+                  </div>
+                </div>
+                <Skeleton className="w-8 h-8 rounded-full" />
+              </div>
+              <div className="flex gap-3 justify-start">
+                <Skeleton className="w-8 h-8 rounded-full" />
+                <div className="flex flex-col items-start max-w-[70%]">
+                  <div className="rounded-2xl px-4 py-3 bg-white/5 border border-white/10">
+                    <Skeleton className="h-4 w-80 mb-2" />
+                    <Skeleton className="h-4 w-60 mb-2" />
+                    <Skeleton className="h-4 w-40" />
+                  </div>
+                </div>
+              </div>
             </div>
           )}
           {!initialLoading && messages.length === 0 && (
@@ -227,8 +263,17 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
             </div>
           ))}
           {loading && (
-            <div ref={lastMessageRef} className="flex items-center gap-2 text-sm text-neutral-400">
-              <Loader2 className="w-4 h-4 animate-spin" /> Generating response...
+            <div ref={lastMessageRef} className="flex gap-3 justify-start">
+              <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center border border-indigo-400/30 shrink-0">
+                <Bot className="w-4 h-4 text-indigo-300" />
+              </div>
+              <div className="flex flex-col items-start max-w-[70%]">
+                <div className="rounded-2xl px-4 py-3 bg-white/5 border border-white/10">
+                  <Skeleton className="h-4 w-48 mb-2" />
+                  <Skeleton className="h-4 w-64 mb-2" />
+                  <Skeleton className="h-4 w-32" />
+                </div>
+              </div>
             </div>
           )}
           {error && <div className="text-red-400 text-xs">{error}</div>}
