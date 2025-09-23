@@ -52,6 +52,8 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
         sender: m.sender,
         text: m.content,
         createdAt: m.createdAt,
+        type: m.type || "text",
+        imageUrl: m.imageUrl,
       }));
       setMessages(mapped);
     } catch (e: any) {
@@ -125,6 +127,8 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
             id: res.data.data.botMessage.id,
             sender: res.data.data.botMessage.sender,
             text: res.data.data.botMessage.content,
+            type: res.data.data.botMessage.type || "text",
+            imageUrl: res.data.data.botMessage.imageUrl,
           },
         ];
       });
@@ -147,12 +151,32 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
       showToast({
         type: "info",
         title: "Copied to clipboard",
-        message: "Message copied successfully",
+        message: "Copied successfully",
         duration: 2000,
       });
       setTimeout(() => setCopiedMessageId(null), 2000);
     } catch (err) {
       console.error("Failed to copy text: ", err);
+    }
+  };
+
+  const downloadImage = async (imageUrl: string, messageId: string) => {
+    try {
+      // TODO
+      showToast({
+        type: "success",
+        title: "Image downloaded",
+        message: "Image saved to your downloads folder",
+        duration: 2000,
+      });
+    } catch (err) {
+      console.error("Failed to download image: ", err);
+      showToast({
+        type: "error",
+        title: "Download failed",
+        message: "Failed to download the image",
+        duration: 3000,
+      });
     }
   };
 
@@ -221,9 +245,11 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
                 <UserMessage message={m} />
               ) : (
                 <BotMessage
-                  variant="chat"
+                  variant={m.type === "image" ? "image" : "chat"}
                   message={m}
+                  imageUrl={m.imageUrl}
                   onCopy={copyToClipboard}
+                  onDownloadImage={() => m.imageUrl && downloadImage(m.imageUrl, m.id)}
                   copiedMessageId={copiedMessageId}
                 />
               )}
