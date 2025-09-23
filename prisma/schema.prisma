@@ -53,6 +53,7 @@ model Chat {
   type           ChatType @default(text)
   conversationId String
   sender         Sender
+  model          String?
   content        String?
   imageUrl       String?
   createdAt      DateTime @default(now())

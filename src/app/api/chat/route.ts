@@ -3,7 +3,6 @@ import { authOptions } from "../auth/[...nextauth]/options";
 import { prisma } from "@/lib/prisma";
 import { sendMessageSchema, getMessagesSchema, deleteMessageSchema } from "@/lib/schema";
 import { SUPPORTED_FILE_TYPES, FileType } from "@/types/files";
-// removed axios; using fetch with FormData to call microservice
 import { MICROSERVICE_BASE_URL } from "@/lib/config";
 
 export async function GET(request: Request) {
@@ -201,7 +200,10 @@ export async function POST(request: Request) {
             throw new Error(`Upstream error ${msRes.status}: ${msRes.statusText}${errText ? ` - ${errText}` : ""}`);
         }
 
-        let replyText = (await msRes.json()).response;
+        const response = await msRes.json();
+        const model = response.model || "unknown";
+        let replyText: string | undefined = response.response;
+        let imageUrl: string | undefined = response.image_url;
         if (!replyText) {
             replyText = "I'm sorry, I couldn't generate a response.";
         }
@@ -209,7 +211,10 @@ export async function POST(request: Request) {
         const botMessage = await prisma.chat.create({
             data: {
                 conversationId: validatedData.conversationId,
+                type: imageUrl ? 'image' : 'text',
                 sender: 'bot',
+                model: model,
+                imageUrl: imageUrl,
                 content: replyText
             }
         });
