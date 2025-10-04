@@ -25,6 +25,7 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
   const [modalImageUrl, setModalImageUrl] = useState<string | null>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const lastMessageRef = useRef<HTMLDivElement>(null);
+  const imgRef = useRef<HTMLImageElement | null>(null);
 
   const { showToast } = useToast();
   const { toggle: toggleSpeak, currentMessageId: speakingMessageId } = useTextToSpeech({
@@ -176,13 +177,39 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
     }
   };
 
-  const downloadImage = async (imageUrl: string, messageId: string) => {
+  const downloadImage = async (imgRef: React.RefObject<HTMLImageElement | null>, messageId: string) => {
     try {
-      // TODO
+      if (!imgRef.current) throw new Error("Image not found");
+      
+      const imageUrl = imgRef.current.src;
+
+      showToast({
+        type: "info",
+        title: "Downloading",
+        message: "Image is being downloaded",
+        duration: 2000,
+      });
+      
+      const response = await axios.get('/api/download-image', {
+        params: { url: imageUrl },
+        responseType: 'blob',
+      });
+      
+      const blob = response.data;
+      const url = URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `sophia-image-${messageId}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
       showToast({
         type: "success",
         title: "Image downloaded",
-        message: "Image saved to your downloads folder",
+        message: "Image downloaded successfully",
         duration: 2000,
       });
     } catch (err) {
@@ -279,7 +306,8 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
                   message={m}
                   imageUrl={m.imageUrl}
                   onCopy={copyToClipboard}
-                  onDownloadImage={() => m.imageUrl && downloadImage(m.imageUrl, m.id)}
+                  imgRef={imgRef}
+                  onDownloadImage={() => m.imageUrl && downloadImage(imgRef, m.id)}
                   copiedMessageId={copiedMessageId}
                   onImageClick={handleImageClick}
                   onSpeak={toggleSpeak}

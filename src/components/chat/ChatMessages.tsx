@@ -73,6 +73,7 @@ export function BotMessage({
   message,
   imageUrl,
   onCopy,
+  imgRef,
   onDownloadImage,
   copiedMessageId,
   onImageClick,
@@ -97,6 +98,7 @@ export function BotMessage({
           onCopy={onCopy}
           isRendering={false}
           copiedMessageId={copiedMessageId}
+          imgRef={imgRef}
           imageUrl={imageUrl}
           onDownloadImage={onDownloadImage}
           onImageClick={onImageClick}
@@ -176,6 +178,7 @@ function BotChatMessage({
 function BotImageMessage({
   imageUrl,
   onCopy,
+  imgRef,
   onDownloadImage,
   isRendering,
   message,
@@ -216,6 +219,7 @@ function BotImageMessage({
               <div>
                 <img
                   src={imageUrl}
+                  ref={imgRef}
                   alt="Generated image"
                   className="max-w-full h-auto rounded-lg border border-white/20 shadow-lg cursor-pointer hover:opacity-90 transition-opacity"
                   style={{ maxHeight: "400px" }}

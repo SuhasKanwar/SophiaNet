@@ -21,6 +21,7 @@ export interface UserMessageProps {
 export interface BotMessageProps {
   variant: variants;
   message: ChatMessage;
+  imgRef?: React.RefObject<HTMLImageElement | null>;
   imageUrl?: string;
   isRendering?: boolean;
   onDownloadImage?: () => void;
