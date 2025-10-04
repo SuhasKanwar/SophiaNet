@@ -7,6 +7,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { UserMessage, BotMessage } from "@/components/chat/ChatMessages";
 import { ChatMessage } from "@/types/chatMessages";
 import ChatInputComponent from "@/components/chat/ChatInputComponent";
+import ImageModal from "@/components/ui/image-modal";
+import { useTextToSpeech } from "@/hooks/useTextToSpeech";
 
 interface ChatbotClientProps {
   chatID: string;
@@ -20,10 +22,24 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
   const [error, setError] = useState<string | null>(null);
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [modalImageUrl, setModalImageUrl] = useState<string | null>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const lastMessageRef = useRef<HTMLDivElement>(null);
 
   const { showToast } = useToast();
+  const { toggle: toggleSpeak, currentMessageId: speakingMessageId } = useTextToSpeech({
+    rate: 1,
+    pitch: 1,
+    volume: 1,
+    onError: (error) => {
+      showToast({
+        type: "error",
+        title: "Speech Error",
+        message: error,
+        duration: 3000,
+      });
+    },
+  });
 
   useEffect(() => {
     const scrollToBottom = () => {
@@ -180,6 +196,14 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
     }
   };
 
+  const handleImageClick = (imageUrl: string) => {
+    setModalImageUrl(imageUrl);
+  };
+
+  const closeModal = () => {
+    setModalImageUrl(null);
+  };
+
   return (
     <section className="flex flex-col w-full px-3 pt-4 items-center h-full mt-[var(--navbar-height,64px)]">
       <div className="w-full max-w-6xl h-full flex flex-col mx-auto pb-[100px]">
@@ -242,7 +266,13 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
               }`}
             >
               {m.sender === "user" ? (
-                <UserMessage message={m} />
+                <UserMessage 
+                  message={m} 
+                  onCopy={copyToClipboard}
+                  copiedMessageId={copiedMessageId}
+                  onSpeak={toggleSpeak}
+                  speakingMessageId={speakingMessageId}
+                />
               ) : (
                 <BotMessage
                   variant={m.type === "image" ? "image" : "chat"}
@@ -251,6 +281,9 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
                   onCopy={copyToClipboard}
                   onDownloadImage={() => m.imageUrl && downloadImage(m.imageUrl, m.id)}
                   copiedMessageId={copiedMessageId}
+                  onImageClick={handleImageClick}
+                  onSpeak={toggleSpeak}
+                  speakingMessageId={speakingMessageId}
                 />
               )}
             </div>
@@ -281,6 +314,13 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
         onError={setError}
         onFilesChange={setSelectedFiles}
         bottomText={`Conversation ID: ${chatID}`}
+      />
+
+      <ImageModal
+        isOpen={!!modalImageUrl}
+        imageUrl={modalImageUrl || ""}
+        alt="Generated image"
+        onClose={closeModal}
       />
     </section>
   );

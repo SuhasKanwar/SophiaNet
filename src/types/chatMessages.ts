@@ -12,6 +12,10 @@ export interface ChatMessage {
 
 export interface UserMessageProps {
   message: ChatMessage;
+  onCopy?: (text: string, messageId: string) => void;
+  copiedMessageId?: string | null;
+  onSpeak?: (text: string, messageId: string) => void;
+  speakingMessageId?: string | null;
 }
 
 export interface BotMessageProps {
@@ -22,4 +26,7 @@ export interface BotMessageProps {
   onDownloadImage?: () => void;
   onCopy?: (text: string, messageId: string) => void;
   copiedMessageId?: string | null;
+  onImageClick?: (imageUrl: string) => void;
+  onSpeak?: (text: string, messageId: string) => void;
+  speakingMessageId?: string | null;
 }

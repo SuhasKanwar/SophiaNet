@@ -28,7 +28,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" data-scroll-behavior="smooth">
       <body className="antialiased text-white min-h-screen flex flex-col bg-gradient-to-b from-black via-black to-[#0f0f17]">
         <ContextProvider>
           <main className="flex-1">
