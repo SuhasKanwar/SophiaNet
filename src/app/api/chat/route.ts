@@ -215,7 +215,7 @@ export async function POST(request: Request) {
                 sender: 'bot',
                 model: model,
                 imageUrl: imageUrl,
-                content: imageUrl ? '' : replyText
+                content: replyText || ""
             }
         });
 
