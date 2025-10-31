@@ -1,13 +1,28 @@
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
-import { Notebook } from "lucide-react";
+import { ImageIcon, Notebook, YoutubeIcon } from "lucide-react";
 
 const sidebarLinks = [
 	{
 		name: "Notes Tool",
 		icon: <Notebook />,
-		link: "/chatbot/notes-tool",
+		link: "/chatbot/t/notes-tool",
 	},
+	{
+		name: "Youtube Video Tool",
+		icon: <YoutubeIcon />,
+		link: "/chatbot/t/youtube-video-tool",
+	},
+	{
+		name: "Diagrams Tool",
+		icon: <Notebook />,
+		link: "/chatbot/t/diagrams-tool",
+	},
+	{
+		name: "Image Filter Tool",
+		icon: <ImageIcon />,
+		link: "/chatbot/t/image-filter-tool",
+	}
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
