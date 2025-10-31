@@ -281,7 +281,7 @@ export default function Sidebar({
               Tools
             </p>
           )}
-          <nav className="flex flex-col gap-1">
+          <nav className="flex flex-col">
             {items.map((item) => (
               <ToolButton key={item.link} item={item} expanded={expanded} />
             ))}

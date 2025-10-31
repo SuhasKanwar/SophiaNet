@@ -76,7 +76,7 @@ export function ToolButton({ item, expanded }: ToolButtonProps) {
       title={!expanded ? item.name : undefined}
     >
       <span
-        className={`flex items-center justify-center shrink-0 w-7 h-7 rounded-md ${
+        className={`flex items-center justify-center shrink-0 w-6 h-6 rounded-md ${
           active
             ? "bg-indigo-500/30 text-indigo-300"
             : "bg-white/5 group-hover:bg-white/10"
@@ -174,6 +174,11 @@ export function ChatItem({
               : "bg-neutral-500 group-hover:bg-neutral-400"
           }`}
         />
+        {chat.variant !== "chat" && (
+          <span className="font-bold text-indigo-300">
+            {chat.variant.charAt(0).toUpperCase()}
+          </span>
+        )}
         {!isEditing && (
           <span className="flex-1 truncate break-words">{chat.title}</span>
         )}
