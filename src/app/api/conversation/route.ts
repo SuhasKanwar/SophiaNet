@@ -28,6 +28,7 @@ export async function GET(request: Request) {
                 id: true,
                 title: true,
                 startedAt: true,
+                variant: true,
                 lastUpdated: true,
                 _count: {
                     select: {

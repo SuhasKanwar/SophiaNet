@@ -3,7 +3,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { ChevronsLeftRight, Clock, Search } from "lucide-react";
 import Image from "next/image";
-import { ToolButton, NewChatButton, ChatItem } from "./SidebarComponents";
+import { ToolButton, NewChatButton, ChatItem, ChatSession } from "./SidebarComponents";
 import { useToast } from "@/providers/ToastProvider";
 import axios from "axios";
 import ConfirmationModal from "./ConfirmationModal";
@@ -19,12 +19,6 @@ interface SidebarItem {
   name: string;
   icon: any;
   link: string;
-}
-
-interface ChatSession {
-  id: string;
-  title: string;
-  updatedAt: string;
 }
 
 type SidebarProps = {
@@ -80,6 +74,7 @@ export default function Sidebar({
       const mapped: ChatSession[] = res.data.data.map((c: any) => ({
         id: c.id,
         title: truncateTitle(c.title || "Untitled"),
+        variant: c.variant,
         updatedAt: c.lastUpdated,
       }));
       setChats(mapped);

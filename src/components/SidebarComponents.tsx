@@ -20,9 +20,11 @@ interface SidebarItem {
   icon: any;
   link: string;
 }
-interface ChatSession {
+
+export interface ChatSession {
   id: string;
   title: string;
+  variant: keyof typeof chatVariantRouteMapping;
   updatedAt: string;
 }
 interface ToolButtonProps {
@@ -47,6 +49,14 @@ interface ChatItemProps {
   onDelete: (id: string) => void;
   confirmingRename?: boolean;
 }
+
+const chatVariantRouteMapping = {
+  chat: '/chatbot/c/',
+  notes_tool: '/chatbot/t/notes-tool/c/',
+  youtube_tool: '/chatbot/t/youtube-video-tool/c/',
+  diagram_tool: '/chatbot/t/diagrams-tool/c/',
+  image_filter_tool: '/chatbot/t/image-filter-tool/c/',
+};
 
 export function ToolButton({ item, expanded }: ToolButtonProps) {
   const pathname = usePathname();
@@ -125,7 +135,7 @@ export function ChatItem({
     return (
       <div className="group/chat relative flex justify-center px-1">
         <button
-          onClick={() => router.push(`/chatbot/c/${chat.id}`)}
+          onClick={() => router.push(`${chatVariantRouteMapping[chat.variant]}${chat.id}`)}
           className="w-full flex items-center justify-center"
         >
           <span
@@ -153,7 +163,7 @@ export function ChatItem({
       <button
         onClick={(e) => {
           e.stopPropagation();
-          if (!isEditing) router.push(`/chatbot/c/${chat.id}`);
+          if (!isEditing) router.push(`${chatVariantRouteMapping[chat.variant]}/${chat.id}`);
         }}
         className="flex items-center gap-2 flex-1 px-2 py-2 text-left"
       >
