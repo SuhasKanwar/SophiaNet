@@ -1,7 +1,8 @@
 import z from 'zod';
 
 export const createConversationSchema = z.object({
-    title: z.string().optional()
+    title: z.string().optional(),
+    variant: z.enum(['chat', 'notes_tool', 'youtube_tool', 'diagram_tool', 'image_filter_tool']).default('chat')
 });
 
 export const renameConversationSchema = z.object({

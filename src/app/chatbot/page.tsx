@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import ChatInputComponent from "@/components/chat/ChatInputComponent";
 import { SUGGESTIONS } from "@/data/suggestion";
+import { conversationVariant, createConversation } from "@/tools/chatUtils";
 
 export default function DashboardPage() {
   const [input, setInput] = useState("");
@@ -13,13 +14,6 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const router = useRouter();
-
-  const createConversation = async (title: string) => {
-    const res = await axios.post("/api/conversation", { title });
-    if (!res.data.success)
-      throw new Error(res.data.message || "Failed to create conversation");
-    return res.data.data;
-  };
 
   const sendFirstMessage = async (conversationId: string, content: string) => {
     if (selectedFiles.length > 0) {
@@ -51,7 +45,7 @@ export default function DashboardPage() {
     const ask = input.trim();
     setInput("");
     try {
-      const conversation = await createConversation(ask || "New Chat");
+      const conversation = await createConversation(ask || "New Chat", conversationVariant.CHAT);
       await sendFirstMessage(conversation.id, ask);
       router.push(`/chatbot/c/${conversation.id}`);
     } catch (e: any) {

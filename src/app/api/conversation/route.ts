@@ -81,6 +81,9 @@ export async function POST(request: Request) {
             data: {
                 userId: (user as any).id,
                 title: validatedData.title,
+                variant: validatedData.variant,
+                startedAt: new Date(),
+                lastUpdated: new Date(),
                 isArchived: false
             }
         });
