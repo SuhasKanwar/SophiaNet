@@ -1,8 +1,9 @@
 import { cn } from "@/lib/utils";
-import React, { useRef, useState } from "react";
-import { motion } from "motion/react";
+import React, { useRef, useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { IconUpload } from "@tabler/icons-react";
 import { useDropzone } from "react-dropzone";
+import FileIconTag from "@/components/chat/FileIconTag";
 
 const mainVariant = {
   initial: {
@@ -34,9 +35,24 @@ export const FileUpload = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (newFiles: File[]) => {
-    setFiles((prevFiles) => [...prevFiles, ...newFiles]);
-    onChange && onChange(newFiles);
+    setFiles((prevFiles) => {
+      const updated = [...prevFiles, ...newFiles];
+      return updated;
+    });
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
+
+  const removeFileAt = (index: number) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  useEffect(() => {
+    if (onChange) {
+      onChange(files);
+    }
+  }, [files, onChange]);
 
   const handleClick = () => {
     fileInputRef.current?.click();
@@ -52,11 +68,14 @@ export const FileUpload = ({
   });
 
   return (
-    <div className="w-full" {...getRootProps()}>
+    <div
+      className="w-full min-h-[calc(100vh-var(--navbar-height,120px))] flex items-center justify-center"
+      {...getRootProps()}
+    >
       <motion.div
         onClick={handleClick}
         whileHover="animate"
-        className="p-10 group/file block rounded-lg cursor-pointer w-full relative overflow-hidden"
+        className="p-10 group/file block rounded-lg cursor-pointer w-full relative overflow-hidden min-h-[calc(100vh-var(--navbar-height,120px))]"
       >
         <input
           ref={fileInputRef}
@@ -65,10 +84,10 @@ export const FileUpload = ({
           onChange={(e) => handleFileChange(Array.from(e.target.files || []))}
           className="hidden"
         />
-        <div className="absolute inset-0 [mask-image:radial-gradient(ellipse_at_center,white,transparent)]">
+        <div className="absolute inset-0 mt-[30vh] [mask-image:radial-gradient(ellipse_at_center,white,transparent)]">
           <GridPattern />
         </div>
-        <div className="flex flex-col items-center justify-center">
+        <div className="flex flex-col min-h-full items-center justify-center mt-[20vh]">
           <p className="relative z-20 font-sans font-bold text-neutral-300 text-base">
             Upload file
           </p>
@@ -76,56 +95,24 @@ export const FileUpload = ({
             Drag or drop your files here or click to upload
           </p>
           <div className="relative w-full mt-10 max-w-xl mx-auto">
-            {files.length > 0 &&
-              files.map((file, idx) => (
-                <motion.div
-                  key={"file" + idx}
-                  layoutId={idx === 0 ? "file-upload" : "file-upload-" + idx}
-                  className={cn(
-                    "relative overflow-hidden z-40 bg-neutral-900 flex flex-col items-start justify-start md:h-24 p-4 mt-4 w-full mx-auto rounded-md",
-                    "shadow-sm"
-                  )}
-                >
-                  <div className="flex justify-between w-full items-center gap-4">
-                    <motion.p
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      layout
-                      className="text-base text-neutral-300 truncate max-w-xs"
-                    >
-                      {file.name}
-                    </motion.p>
-                    <motion.p
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      layout
-                      className="rounded-lg px-2 py-1 w-fit shrink-0 text-sm bg-neutral-800 text-white shadow-input"
-                    >
-                      {(file.size / (1024 * 1024)).toFixed(2)} MB
-                    </motion.p>
-                  </div>
+            <AnimatePresence initial={false}>
+              {files.length > 0 &&
+                files.map((file, idx) => (
+                  <motion.div key={"file" + idx} layout className="mt-4">
+                    <FileIconTag
+                      name={file.name}
+                      sizeBytes={file.size}
+                      mimeType={file.type}
+                      lastModified={file.lastModified}
+                      variant="card"
+                      // Important: prevent bubbling to the clickable container
+                      stopClickPropagation
+                      onRemove={() => removeFileAt(idx)}
+                    />
+                  </motion.div>
+                ))}
+            </AnimatePresence>
 
-                  <div className="flex text-sm md:flex-row flex-col items-start md:items-center w-full mt-2 justify-between text-neutral-400">
-                    <motion.p
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      layout
-                      className="px-1 py-0.5 rounded-md bg-neutral-800 "
-                    >
-                      {file.type}
-                    </motion.p>
-
-                    <motion.p
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      layout
-                    >
-                      modified{" "}
-                      {new Date(file.lastModified).toLocaleDateString()}
-                    </motion.p>
-                  </div>
-                </motion.div>
-              ))}
             {!files.length && (
               <motion.div
                 layoutId="file-upload"
@@ -136,7 +123,7 @@ export const FileUpload = ({
                   damping: 20,
                 }}
                 className={cn(
-                  "relative group-hover/file:shadow-2xl z-40 bg-neutral-900 flex items-center justify-center h-32 mt-4 w-full max-w-[8rem] mx-auto rounded-md",
+                  "relative group-hover/file:shadow-2xl z-40 bg-neutral-900 flex items-center justify-center h-32 w-full max-w-[8rem] mx-auto rounded-md",
                   "shadow-[0px_10px_50px_rgba(0,0,0,0.1)]"
                 )}
               >
@@ -170,24 +157,32 @@ export const FileUpload = ({
 
 export function GridPattern() {
   const columns = 41;
-  const rows = 11;
+  const rows = 14;
+  const cellSize = 40;
+  const gap = 1;
+  const total = rows * columns;
+
   return (
-    <div className="flex bg-neutral-900 shrink-0 flex-wrap justify-center items-center gap-x-px gap-y-px  scale-105">
-      {Array.from({ length: rows }).map((_, row) =>
-        Array.from({ length: columns }).map((_, col) => {
-          const index = row * columns + col;
-          return (
-            <div
-              key={`${col}-${row}`}
-              className={`w-10 h-10 flex shrink-0 rounded-[2px] ${
-                index % 2 === 0
-                  ? "bg-neutral-950"
-                  : "bg-neutral-950 shadow-[0px_0px_1px_3px_rgba(0,0,0,1)_inset]"
-              }`}
-            />
-          );
-        })
-      )}
+    <div
+      className="bg-neutral-900 shrink-0"
+      style={{
+        display: "grid",
+        gridTemplateColumns: `repeat(${columns}, ${cellSize}px)`,
+        gap: `${gap}px`,
+        justifyContent: "center",
+      }}
+    >
+      {Array.from({ length: total }).map((_, idx) => (
+        <div
+          key={idx}
+          className={`flex shrink-0 rounded-[2px] ${
+            idx % 2 === 0
+              ? "bg-neutral-950"
+              : "bg-neutral-950 shadow-[0px_0px_1px_3px_rgba(0,0,0,1)_inset]"
+          }`}
+          style={{ width: cellSize, height: cellSize }}
+        />
+      ))}
     </div>
   );
 }

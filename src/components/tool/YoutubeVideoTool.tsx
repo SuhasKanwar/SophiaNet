@@ -1,7 +1,9 @@
+import ToolsHeading from "./ToolsHeading";
+
 export default function YoutubeVideoTool() {
     return (
-        <section className="flex flex-col w-full px-3 pt-4 items-center h-full mt-[var(--navbar-height,64px)]">
-            Youtube Video Tool
+        <section className="flex flex-col w-full px-3 pt-4 items-center min-h-full mt-[var(--navbar-height,64px)]">
+            <ToolsHeading firstPart="YouTube Video" secondPart="Tool" />
         </section>
     );
 }

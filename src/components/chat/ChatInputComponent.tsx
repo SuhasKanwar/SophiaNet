@@ -56,8 +56,12 @@ export default function ChatInputComponent({
   }, [selectedFiles, onFilesChange]);
 
   const handleSend = () => {
-    if (!input.trim() || loading || disabled) return;
+    if (loading || disabled) return;
+    if (!input.trim() && selectedFiles.length === 0) return;
+
     onSend();
+    clearFiles();
+    setInput("");
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -100,7 +104,7 @@ export default function ChatInputComponent({
           </button>
         )}
 
-        <input {...inputProps} />
+        <input {...inputProps} key={`file-input-${selectedFiles.length}`} />
 
         <input
           type="text"
@@ -130,7 +134,7 @@ export default function ChatInputComponent({
 
         <button
           onClick={handleSend}
-          disabled={loading || !input.trim() || disabled}
+          disabled={loading || (!input.trim() && selectedFiles.length === 0) || disabled}
           className="p-2 rounded-md bg-gradient-to-r from-indigo-500 to-violet-500 text-white text-sm font-medium hover:from-indigo-400 hover:to-violet-400 disabled:opacity-50 disabled:cursor-not-allowed shadow border border-indigo-400/40"
           title="Send"
         >
