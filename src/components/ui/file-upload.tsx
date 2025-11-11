@@ -3,7 +3,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { IconUpload } from "@tabler/icons-react";
 import { useDropzone } from "react-dropzone";
-import FileIconTag from "@/components/chat/FileIconTag";
+import FileIconTag from "@/components/FileIconTag";
 
 const mainVariant = {
   initial: {

@@ -18,7 +18,6 @@ type FileIconTagProps = {
   mimeType?: string;
   lastModified?: number | Date;
   variant?: "tag" | "card";
-  // New: allow stopping click bubbling (useful when parent container opens file dialog on click)
   stopClickPropagation?: boolean;
 };
 

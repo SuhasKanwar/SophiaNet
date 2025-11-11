@@ -5,7 +5,7 @@ import { Loader2, Mic, Send, UploadCloud } from "lucide-react";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { useFileSelection } from "@/hooks/useFileSelection";
 import { ACCEPT_FILE_TYPES } from "@/types/files";
-import FileIconTag from "@/components/chat/FileIconTag";
+import FileIconTag from "@/components/FileIconTag";
 
 interface ChatInputComponentProps {
   input: string;

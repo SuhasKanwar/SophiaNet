@@ -1,6 +1,6 @@
 import { Bot, Copy, Check, Download, Image as ImageIcon, Volume2, VolumeX } from "lucide-react";
 import { renderMarkdownWithCodeBlocks } from "@/lib/utils";
-import FileIconTag from "@/components/chat/FileIconTag";
+import FileIconTag from "@/components/FileIconTag";
 import { BotMessageProps, UserMessageProps } from "@/types/chatMessages";
 import { Skeleton } from "@/components/ui/skeleton";
 
