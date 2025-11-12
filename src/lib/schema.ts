@@ -1,4 +1,5 @@
 import z from 'zod';
+import { ToolVariant as ToolVariantType } from '@/types/tools';
 
 export const createConversationSchema = z.object({
     title: z.string().optional(),
@@ -25,4 +26,17 @@ export const getMessagesSchema = z.object({
 
 export const deleteMessageSchema = z.object({
     messageId: z.string().uuid()
+});
+
+export const ToolVariant = z.enum(ToolVariantType);
+
+export const createToolConversationSchema = z.object({
+  title: z.string().optional(),
+  variant: ToolVariant
+});
+
+export const sendToolMessageSchema = z.object({
+  conversationId: z.string().uuid(),
+  content: z.string().min(1).max(10000),
+  history: z.any().optional()
 });

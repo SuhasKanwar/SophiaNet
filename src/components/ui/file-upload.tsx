@@ -28,8 +28,10 @@ const secondaryVariant = {
 
 export const FileUpload = ({
   onChange,
+  children,
 }: {
   onChange?: (files: File[]) => void;
+  children?: React.ReactNode;
 }) => {
   const [files, setFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -94,6 +96,17 @@ export const FileUpload = ({
           <p className="relative z-20 font-sans font-normal text-neutral-400 text-base mt-2">
             Drag or drop your files here or click to upload
           </p>
+
+          {/* Added: custom action area beneath the text */}
+          {children && (
+            <div
+              className="relative z-20 mt-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {children}
+            </div>
+          )}
+
           <div className="relative w-full mt-10 max-w-xl mx-auto">
             <AnimatePresence initial={false}>
               {files.length > 0 &&
@@ -105,7 +118,6 @@ export const FileUpload = ({
                       mimeType={file.type}
                       lastModified={file.lastModified}
                       variant="card"
-                      // Important: prevent bubbling to the clickable container
                       stopClickPropagation
                       onRemove={() => removeFileAt(idx)}
                     />
