@@ -11,6 +11,7 @@ import {
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/providers/ToastProvider";
+import axios from "axios";
 
 type SourceMode = "url" | "channel";
 
@@ -20,6 +21,8 @@ export default function YoutubeVideoTool() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { showToast } = useToast();
+  const [result, setResult] = useState<string | null>(null);
+  const [conversationId, setConversationId] = useState<string | null>(null);
 
   const meta = useMemo(
     () => ({
@@ -75,7 +78,7 @@ export default function YoutubeVideoTool() {
     return null;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
     const err = validate();
@@ -84,11 +87,45 @@ export default function YoutubeVideoTool() {
       return;
     }
     setError(null);
-
-    const payload = { sourceType: mode, input: value.trim() };
-    console.log("YoutubeVideoTool submit:", payload);
-
+    setResult(null);
     setLoading(true);
+
+    try {
+      let convId = conversationId;
+      if (!convId) {
+        const convRes = await axios.post("/api/tool-conversation", {
+          title: mode === "url" ? "YouTube Video" : "YouTube Channel",
+          variant: "youtube_tool",
+        });
+        if (!convRes.data?.success) {
+          throw new Error(convRes.data?.message || "Failed to start conversation");
+        }
+        convId = convRes.data.data.id;
+        setConversationId(convId);
+      }
+
+      const v = value.trim();
+      const content =
+        mode === "url"
+          ? `Analyze this YouTube video: ${v}`
+          : `Analyze this YouTube channel: ${v}`;
+      const chatRes = await axios.post("/api/tool-chat", {
+        conversationId: convId,
+        content,
+        history: [],
+      });
+      if (!chatRes.data?.success) {
+        throw new Error(chatRes.data?.message || "Failed to process input");
+      }
+      const reply: string = chatRes.data.data?.botMessage?.content || "No response.";
+      setResult(reply);
+    } catch (e: any) {
+      const msg = e?.response?.data?.message || e?.message || "Request failed";
+      setError(msg);
+      showToast({ type: "error", title: "YouTube Tool Error", message: msg });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -117,7 +154,10 @@ export default function YoutubeVideoTool() {
               <DropdownMenuContent className="bg-black/80 backdrop-blur-lg border-white/10 text-neutral-200 min-w-[12rem]">
                 <DropdownMenuRadioGroup
                   value={mode}
-                  onValueChange={(v) => setMode(v as SourceMode)}
+                  onValueChange={(v) => {
+                    setMode(v as SourceMode);
+                    setResult(null);
+                  }}
                 >
                   <DropdownMenuRadioItem value="url">
                     Video URL
@@ -136,7 +176,10 @@ export default function YoutubeVideoTool() {
             </label>
             <input
               value={value}
-              onChange={(e) => setValue(e.target.value)}
+              onChange={(e) => {
+                setValue(e.target.value);
+                setResult(null);
+              }}
               placeholder={meta[mode].placeholder}
               className="w-full rounded-lg bg-black/30 border border-white/10 text-neutral-200 px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500/40 placeholder:text-neutral-500"
             />
@@ -162,6 +205,12 @@ export default function YoutubeVideoTool() {
             {loading ? "Processing..." : "Proceed"}
           </button>
         </div>
+
+        {result && (
+          <div className="mt-4 rounded-lg border border-white/10 bg-white/5 p-4 text-sm text-neutral-200">
+            {result}
+          </div>
+        )}
       </form>
     </section>
   );
