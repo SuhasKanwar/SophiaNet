@@ -101,7 +101,7 @@ export default function YoutubeVideoTool() {
 
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-2xl mt-4 bg-white/5 border border-white/10 rounded-2xl p-4 md:p-6 backdrop-blur"
+        className="w-full max-w-2xl mt-4 bg-white/5 border-4 border-white/10 rounded-2xl p-4 md:p-6 backdrop-blur"
       >
         <div className="flex flex-col md:flex-row gap-3">
           <div className="md:w-44">
