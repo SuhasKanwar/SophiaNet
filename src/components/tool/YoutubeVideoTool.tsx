@@ -1,47 +1,19 @@
 "use client";
 
 import ToolsHeading from "./ToolsHeading";
-import { useMemo, useState } from "react";
-import { Youtube, ChevronDown } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-} from "@/components/ui/dropdown-menu";
+import { useState } from "react";
+import { Youtube } from "lucide-react";
 import { useToast } from "@/providers/ToastProvider";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 
-type SourceMode = "url" | "channel";
-
 export default function YoutubeVideoTool() {
-  const [mode, setMode] = useState<SourceMode>("url");
   const [value, setValue] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { showToast } = useToast();
   const [conversationId, setConversationId] = useState<string | null>(null);
   const router = useRouter();
-
-  const meta = useMemo(
-    () => ({
-      url: {
-        label: "Video URL",
-        placeholder:
-          "https://www.youtube.com/watch?v=VIDEO_ID or https://youtu.be/VIDEO_ID",
-        hint: "Paste a full YouTube video URL.",
-      },
-      channel: {
-        label: "Channel",
-        placeholder: "@channelHandle or UCxxxxxxxxxxxxxxxxxx",
-        hint:
-          "Provide a channel handle (e.g., @veritasium) or channel ID (starts with UC...).",
-      },
-    }),
-    []
-  );
 
   const validate = () => {
     if (!value.trim()) {
@@ -53,29 +25,15 @@ export default function YoutubeVideoTool() {
       return "Input cannot be empty.";
     }
     const v = value.trim();
-    if (mode === "url") {
-      const isYT =
-        /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\//i.test(v);
-      if (!isYT) {
-        showToast({
-          type: "error",
-          title: "Validation Error",
-          message: "Invalid YouTube video URL.",
-        });
-        return "Please enter a valid YouTube video URL.";
-      }
-    }
-    if (mode === "channel") {
-      const looksLikeHandle = v.startsWith("@");
-      const looksLikeId = /^UC[a-zA-Z0-9_-]{22}$/.test(v);
-      if (!looksLikeHandle && !looksLikeId) {
-        showToast({
-          type: "error",
-          title: "Validation Error",
-          message: "Invalid channel handle or ID.",
-        });
-        return "Enter a channel handle (e.g., @channel) or a channel ID (starts with UC...).";
-      }
+    const isYT =
+      /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\//i.test(v);
+    if (!isYT) {
+      showToast({
+        type: "error",
+        title: "Validation Error",
+        message: "Invalid YouTube video URL.",
+      });
+      return "Please enter a valid YouTube video URL.";
     }
     return null;
   };
@@ -95,7 +53,7 @@ export default function YoutubeVideoTool() {
       let convId = conversationId;
       if (!convId) {
         const convRes = await axios.post("/api/tool-conversation", {
-          title: mode === "url" ? "YouTube Video" : "YouTube Channel",
+          title: "YouTube Video",
           variant: "youtube_tool",
         });
         if (!convRes.data?.success) {
@@ -106,10 +64,7 @@ export default function YoutubeVideoTool() {
       }
 
       const v = value.trim();
-      const content =
-        mode === "url"
-          ? `Analyze this YouTube video: ${v}`
-          : `Analyze this YouTube channel: ${v}`;
+      const content = `Analyze this YouTube video: ${v}`;
 
       const chatRes = await axios.post("/api/tool-chat", {
         conversationId: convId,
@@ -148,40 +103,10 @@ export default function YoutubeVideoTool() {
         onSubmit={handleSubmit}
         className="w-full max-w-2xl mt-4 bg-white/5 border-4 border-white/10 rounded-2xl p-4 md:p-6 backdrop-blur"
       >
-        <div className="flex flex-col md:flex-row gap-3">
-          <div className="md:w-44">
-            <label className="block text-xs text-neutral-400 mb-1">
-              Source Type
-            </label>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger className="w-full rounded-lg bg-black/30 border border-white/10 text-neutral-200 px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500/40 flex items-center justify-between">
-                <span>{mode === "url" ? "Video URL" : "Channel"}</span>
-                <ChevronDown className="w-4 h-4 text-neutral-400" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="bg-black/80 backdrop-blur-lg border-white/10 text-neutral-200 min-w-[12rem]">
-                <DropdownMenuRadioGroup
-                  value={mode}
-                  onValueChange={(v) => {
-                    setMode(v as SourceMode);
-                    setValue("");
-                    setError(null);
-                  }}
-                >
-                  <DropdownMenuRadioItem value="url">
-                    Video URL
-                  </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="channel">
-                    Channel
-                  </DropdownMenuRadioItem>
-                </DropdownMenuRadioGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
+        <div className="flex flex-col gap-3">
           <div className="flex-1">
             <label className="block text-xs text-neutral-400 mb-1">
-              {meta[mode].label}
+              Video URL
             </label>
             <input
               value={value}
@@ -189,11 +114,11 @@ export default function YoutubeVideoTool() {
                 setValue(e.target.value);
                 setError(null);
               }}
-              placeholder={meta[mode].placeholder}
+              placeholder="https://www.youtube.com/watch?v=VIDEO_ID or https://youtu.be/VIDEO_ID"
               className="w-full rounded-lg bg-black/30 border border-white/10 text-neutral-200 px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500/40 placeholder:text-neutral-500"
             />
             <div className="text-[11px] text-neutral-500 mt-1">
-              {meta[mode].hint}
+              Paste a full YouTube video URL.
             </div>
           </div>
         </div>

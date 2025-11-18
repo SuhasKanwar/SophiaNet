@@ -154,7 +154,6 @@ html {
   stroke-width: 1.5px !important;
 }
 
-/* Arrowheads */
 .mermaid-dark .marker path,
 .mermaid-dark marker path {
   fill: #e5e7eb !important;
