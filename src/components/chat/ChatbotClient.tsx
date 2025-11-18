@@ -9,10 +9,14 @@ import { ChatMessage } from "@/types/chatMessages";
 import ChatInputComponent from "@/components/chat/ChatInputComponent";
 import ImageModal from "@/components/ui/image-modal";
 import { useTextToSpeech } from "@/hooks/useTextToSpeech";
+import ToolsHeading from "@/components/tool/ToolsHeading";
+import { ToolVariant } from "@/types/tools";
 
 interface ChatbotClientProps {
   chatID: string;
 }
+
+type ConversationVariant = "chat" | ToolVariant;
 
 export default function ChatbotClient({ chatID }: ChatbotClientProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -23,6 +27,8 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [modalImageUrl, setModalImageUrl] = useState<string | null>(null);
+  const [conversationVariant, setConversationVariant] = useState<ConversationVariant>("chat");
+  const [conversationTitle, setConversationTitle] = useState<string | null>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const lastMessageRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
@@ -60,6 +66,18 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
     setInitialLoading(true);
     setError(null);
     try {
+      const convRes = await axios.get("/api/conversation", {
+        params: { conversationId: chatID },
+      }).catch(() => null);
+
+      if (convRes?.data?.success && Array.isArray(convRes.data.data)) {
+        const conv = convRes.data.data.find((c: any) => c.id === chatID);
+        if (conv) {
+          setConversationVariant(conv.variant as ConversationVariant);
+          setConversationTitle(conv.title || null);
+        }
+      }
+
       const res = await axios.get("/api/chat", {
         params: { conversationId: chatID },
       });
@@ -85,6 +103,22 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
   useEffect(() => {
     fetchMessages();
   }, [fetchMessages]);
+
+  const getToolHeading = () => {
+    if (conversationVariant === "notes_tool") {
+      return { first: "Notes", second: "Tool (OCR)" };
+    }
+    if (conversationVariant === "youtube_tool") {
+      return { first: "YouTube Video", second: "Tool" };
+    }
+    if (conversationVariant === "diagram_tool") {
+      return { first: "Diagrams", second: "Tool" };
+    }
+    if (conversationVariant === "image_filter_tool") {
+      return { first: "Image Filter", second: "Tool" };
+    }
+    return null;
+  };
 
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
@@ -233,6 +267,16 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
 
   return (
     <section className="flex flex-col w-full px-3 pt-4 items-center h-full mt-[var(--navbar-height,64px)]">
+      {conversationVariant !== "chat" && (
+        <div className="w-full flex flex-col items-center mb-2">
+          {(() => {
+            const h = getToolHeading();
+            if (!h) return null;
+            return <ToolsHeading firstPart={h.first} secondPart={h.second} />;
+          })()}
+        </div>
+      )}
+
       <div className="w-full max-w-6xl h-full flex flex-col mx-auto pb-[100px]">
         <div
           ref={chatContainerRef}
