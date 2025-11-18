@@ -128,3 +128,54 @@ html {
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
+
+.mermaid-dark svg {
+  background-color: transparent !important;
+}
+
+.mermaid-dark .node rect,
+.mermaid-dark .node circle,
+.mermaid-dark .node ellipse,
+.mermaid-dark .node polygon {
+  fill: #020617 !important;
+  stroke: #e5e7eb !important;
+}
+
+.mermaid-dark .label,
+.mermaid-dark .label text,
+.mermaid-dark .node text {
+  fill: #e5e7eb !important;
+}
+
+.mermaid-dark .edgePath path,
+.mermaid-dark .edgePath .path,
+.mermaid-dark .flowchart-link {
+  stroke: #e5e7eb !important;
+  stroke-width: 1.5px !important;
+}
+
+/* Arrowheads */
+.mermaid-dark .marker path,
+.mermaid-dark marker path {
+  fill: #e5e7eb !important;
+}
+
+.mermaid-dark .actor rect,
+.mermaid-dark .actor-line {
+  fill: #020617 !important;
+  stroke: #e5e7eb !important;
+}
+
+.mermaid-dark .messageLine0,
+.mermaid-dark .messageLine1 {
+  stroke: #e5e7eb !important;
+}
+
+.mermaid-dark .messageText,
+.mermaid-dark .actor > text {
+  fill: #e5e7eb !important;
+}
+
+.mermaid-dark text {
+  fill: #e5e7eb !important;
+}

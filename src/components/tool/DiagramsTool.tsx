@@ -7,6 +7,7 @@ import ChatInputComponent from "@/components/chat/ChatInputComponent";
 import axios from "axios";
 import { MICROSERVICE_BASE_URL } from "@/lib/config";
 import { useToast } from "@/providers/ToastProvider";
+import MermaidChart from "@/components/MermaidChart";
 
 export default function DiagramsTool() {
   const [input, setInput] = useState("");
@@ -14,27 +15,34 @@ export default function DiagramsTool() {
   const [diagram, setDiagram] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { showToast } = useToast();
+  const [currentCode, setCurrentCode] = useState<string>("");
 
   const handleSend = async () => {
     if (!input.trim() || loading) return;
     setLoading(true);
     setError(null);
-    setDiagram(null);
 
     try {
       const res = await axios.post(`${MICROSERVICE_BASE_URL}/generate-diagram`, {
         prompt: input.trim(),
+        code: currentCode,
       });
       if (res.data?.status !== 200) {
         throw new Error(res.data?.message || "Failed to generate diagram");
       }
-      const text: string = res.data?.response || "No diagram generated.";
-      setDiagram(text);
+      const mermaidCode: string = res.data?.response || "";
+      if (!mermaidCode.trim()) {
+        throw new Error("Empty diagram code received from backend.");
+      }
+
+      setDiagram(mermaidCode);
+      setCurrentCode(mermaidCode);
+      setInput("");
 
       showToast({
         type: "success",
         title: "Diagram Generated",
-        message: "Your diagram has been generated successfully.",
+        message: "Your Mermaid diagram has been generated successfully.",
       });
     } catch (e: any) {
       const msg =
@@ -58,15 +66,16 @@ export default function DiagramsTool() {
       <ToolsHeading firstPart="Diagrams" secondPart="Tool" />
       <DottedPattern />
 
-      <div className="flex-1 flex items-center justify-center w-full max-w-3xl mx-auto">
+      <div className="flex-1 flex flex-col items-center justify-center w-full max-w-5xl mx-auto gap-4">
         {diagram ? (
-          <pre className="whitespace-pre-wrap text-sm text-neutral-100 bg-black/50 border border-white/10 rounded-xl p-4 max-w-full max-h-[60vh] overflow-auto text-center">
-            {diagram}
-          </pre>
+          <div className="w-full overflow-auto">
+            <MermaidChart code={diagram} />
+          </div>
         ) : (
-          <p className="text-sm text-neutral-400 text-center px-4">
-            Enter a description below to generate a diagram. For now, a dummy text
-            diagram will be rendered here in the center.
+          <p className="text-sm text-neutral-400 text-center px-4 max-w-xl">
+            Describe the diagram you want below. The backend will generate
+            Mermaid code, and the diagram will be rendered here. You can also
+            modify the Mermaid code in the editor and ask the tool to refine it.
           </p>
         )}
       </div>
@@ -82,11 +91,11 @@ export default function DiagramsTool() {
         setInput={setInput}
         onSend={handleSend}
         loading={loading}
-        placeholder="Describe the diagram you want to generate..."
+        placeholder="Describe or refine the diagram you want to generate..."
         showFileUpload={false}
         showVoiceInput={false}
         onError={setError}
-        bottomText="Diagrams Tool – powered by SophiaNet"
+        bottomText="Diagrams Tool – natural language + Mermaid code refinement"
       />
     </section>
   );
