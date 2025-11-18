@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/providers/ToastProvider";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
 type SourceMode = "url" | "channel";
 
@@ -21,8 +22,8 @@ export default function YoutubeVideoTool() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { showToast } = useToast();
-  const [result, setResult] = useState<string | null>(null);
   const [conversationId, setConversationId] = useState<string | null>(null);
+  const router = useRouter();
 
   const meta = useMemo(
     () => ({
@@ -44,12 +45,12 @@ export default function YoutubeVideoTool() {
 
   const validate = () => {
     if (!value.trim()) {
-        showToast({
-            type: "error",
-            title: "Validation Error",
-            message: "Input cannot be empty."
-        });
-        return "Input cannot be empty.";
+      showToast({
+        type: "error",
+        title: "Validation Error",
+        message: "Input cannot be empty.",
+      });
+      return "Input cannot be empty.";
     }
     const v = value.trim();
     if (mode === "url") {
@@ -57,9 +58,9 @@ export default function YoutubeVideoTool() {
         /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\//i.test(v);
       if (!isYT) {
         showToast({
-            type: "error",
-            title: "Validation Error",
-            message: "Invalid YouTube video URL."
+          type: "error",
+          title: "Validation Error",
+          message: "Invalid YouTube video URL.",
         });
         return "Please enter a valid YouTube video URL.";
       }
@@ -67,13 +68,14 @@ export default function YoutubeVideoTool() {
     if (mode === "channel") {
       const looksLikeHandle = v.startsWith("@");
       const looksLikeId = /^UC[a-zA-Z0-9_-]{22}$/.test(v);
-      if (!looksLikeHandle && !looksLikeId)
+      if (!looksLikeHandle && !looksLikeId) {
         showToast({
-            type: "error",
-            title: "Validation Error",
-            message: "Invalid channel handle or ID."
+          type: "error",
+          title: "Validation Error",
+          message: "Invalid channel handle or ID.",
         });
         return "Enter a channel handle (e.g., @channel) or a channel ID (starts with UC...).";
+      }
     }
     return null;
   };
@@ -87,7 +89,6 @@ export default function YoutubeVideoTool() {
       return;
     }
     setError(null);
-    setResult(null);
     setLoading(true);
 
     try {
@@ -109,6 +110,7 @@ export default function YoutubeVideoTool() {
         mode === "url"
           ? `Analyze this YouTube video: ${v}`
           : `Analyze this YouTube channel: ${v}`;
+
       const chatRes = await axios.post("/api/tool-chat", {
         conversationId: convId,
         content,
@@ -117,8 +119,14 @@ export default function YoutubeVideoTool() {
       if (!chatRes.data?.success) {
         throw new Error(chatRes.data?.message || "Failed to process input");
       }
-      const reply: string = chatRes.data.data?.botMessage?.content || "No response.";
-      setResult(reply);
+
+      showToast({
+        type: "success",
+        title: "YouTube Analysis Ready",
+        message: "Opening chat for follow-up questions...",
+      });
+
+      router.push(`/chatbot/c/${convId}`);
     } catch (e: any) {
       const msg = e?.response?.data?.message || e?.message || "Request failed";
       setError(msg);
@@ -156,7 +164,8 @@ export default function YoutubeVideoTool() {
                   value={mode}
                   onValueChange={(v) => {
                     setMode(v as SourceMode);
-                    setResult(null);
+                    setValue("");
+                    setError(null);
                   }}
                 >
                   <DropdownMenuRadioItem value="url">
@@ -178,7 +187,7 @@ export default function YoutubeVideoTool() {
               value={value}
               onChange={(e) => {
                 setValue(e.target.value);
-                setResult(null);
+                setError(null);
               }}
               placeholder={meta[mode].placeholder}
               className="w-full rounded-lg bg-black/30 border border-white/10 text-neutral-200 px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500/40 placeholder:text-neutral-500"
@@ -205,12 +214,6 @@ export default function YoutubeVideoTool() {
             {loading ? "Processing..." : "Proceed"}
           </button>
         </div>
-
-        {result && (
-          <div className="mt-4 rounded-lg border border-white/10 bg-white/5 p-4 text-sm text-neutral-200">
-            {result}
-          </div>
-        )}
       </form>
     </section>
   );

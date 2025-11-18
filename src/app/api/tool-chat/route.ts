@@ -8,9 +8,9 @@ import { ToolVariant } from "@/types/tools";
 
 const TOOL_ENDPOINTS: Record<ToolVariant, string> = {
   notes_tool: `${MICROSERVICE_BASE_URL}/process-ocr`,
-  youtube_tool: `${MICROSERVICE_BASE_URL}/tools/youtube`,
-  diagram_tool: `${MICROSERVICE_BASE_URL}/tools/diagram`,
-  image_filter_tool: `${MICROSERVICE_BASE_URL}/tools/image-filter`
+  youtube_tool: `${MICROSERVICE_BASE_URL}/crawl-youtube`,
+  diagram_tool: `${MICROSERVICE_BASE_URL}/generate-diagram`,
+  image_filter_tool: `${MICROSERVICE_BASE_URL}/image-filter`
 };
 
 export async function POST(request: Request) {

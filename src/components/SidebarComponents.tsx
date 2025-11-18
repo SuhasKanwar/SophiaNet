@@ -14,6 +14,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { ToolVariant } from "@/types/tools";
 
 interface SidebarItem {
   name: string;
@@ -24,7 +25,7 @@ interface SidebarItem {
 export interface ChatSession {
   id: string;
   title: string;
-  variant: "chat" | "notes_tool" | "youtube_tool" | "diagram_tool" | "image_filter_tool";
+  variant: "chat" | ToolVariant;
   updatedAt: string;
 }
 interface ToolButtonProps {
