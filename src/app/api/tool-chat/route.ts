@@ -104,6 +104,7 @@ export async function POST(request: Request) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          conversationId: validated.conversationId,
           prompt: validated.content,
           session_history: history,
           files: []

@@ -14,7 +14,6 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { string } from "zod";
 
 interface SidebarItem {
   name: string;
