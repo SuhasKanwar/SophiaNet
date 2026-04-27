@@ -58,15 +58,16 @@ model Conversation {
 }
 
 model Chat {
-  id             String   @id @default(uuid())
-  type           ChatType @default(text)
-  conversationId String
-  sender         Sender
-  model          String?
-  content        String?
-  imageUrl       String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id                 String   @id @default(uuid())
+  type               ChatType @default(text)
+  conversationId     String
+  sender             Sender
+  model              String?
+  content            String?
+  imageUrl           String?
+  performanceMetrics Json?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 

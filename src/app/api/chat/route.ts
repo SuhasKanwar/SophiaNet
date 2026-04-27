@@ -216,7 +216,8 @@ export async function POST(request: Request) {
                 sender: 'bot',
                 model: model,
                 imageUrl: imageUrl,
-                content: replyText || ""
+                content: replyText || "",
+                performanceMetrics: performanceMetrics || null
             }
         });
 

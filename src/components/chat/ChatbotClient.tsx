@@ -89,6 +89,7 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
         createdAt: m.createdAt,
         type: m.type || "text",
         imageUrl: m.imageUrl,
+        performanceMetrics: m.performanceMetrics || undefined,
       }));
       setMessages(mapped);
     } catch (e: any) {
