@@ -1,8 +1,81 @@
-import { Bot, Copy, Check, Download, Image as ImageIcon, Volume2, VolumeX } from "lucide-react";
+import { Bot, Copy, Check, Download, Image as ImageIcon, Volume2, VolumeX, Info } from "lucide-react";
 import { renderMarkdownWithCodeBlocks } from "@/lib/utils";
 import FileIconTag from "@/components/FileIconTag";
-import { BotMessageProps, UserMessageProps } from "@/types/chatMessages";
+import { BotMessageProps, UserMessageProps, PerformanceMetrics } from "@/types/chatMessages";
 import { Skeleton } from "@/components/ui/skeleton";
+
+const METRIC_LABELS: Record<string, string> = {
+  latency_ms: "Latency",
+  bleu_score: "BLEU Score",
+  rouge_l_score: "ROUGE-L Score",
+  retrieval_rouge_l: "Retrieval ROUGE-L",
+  chunks_retrieved: "Chunks Retrieved",
+  response_length: "Response Length",
+  clip_score: "CLIP Score",
+  image_size_bytes: "Image Size",
+};
+
+function formatMetricValue(key: string, value: unknown): string {
+  if (value === null || value === undefined) return "N/A";
+  if (key === "latency_ms") return `${(value as number).toFixed(0)} ms`;
+  if (key === "image_size_bytes") {
+    const bytes = value as number;
+    return bytes >= 1024 * 1024
+      ? `${(bytes / (1024 * 1024)).toFixed(2)} MB`
+      : `${(bytes / 1024).toFixed(1)} KB`;
+  }
+  if (key === "chunks_retrieved" || key === "response_length") return String(value);
+  if (typeof value === "number") return value.toFixed(4);
+  return String(value);
+}
+
+import { useState } from "react";
+
+function MetricsTooltip({ metrics }: { metrics: PerformanceMetrics }) {
+  const [isHovered, setIsHovered] = useState(false);
+
+  const entries = Object.entries(metrics).filter(
+    ([, v]) => v !== undefined && v !== null
+  );
+  if (entries.length === 0) return null;
+
+  return (
+    <div 
+      className="relative inline-flex items-center"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <button
+        className="flex items-center gap-1 p-1 px-2 rounded-md bg-white/10 hover:bg-white/20 text-neutral-400 hover:text-neutral-200 border border-white/10 transition-colors text-[10px] font-medium"
+        title="Performance Metrics"
+      >
+        <Info className="w-3 h-3" />
+        <span>Metrics</span>
+      </button>
+
+      {isHovered && (
+        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50">
+          <div className="rounded-xl px-4 py-3 text-xs shadow-xl backdrop-blur-xl border bg-neutral-900 border-white/20 min-w-[220px]">
+            <div className="text-[11px] font-semibold text-indigo-300 uppercase tracking-wider mb-2">
+              Evaluation Metrics
+            </div>
+            <div className="space-y-1.5 whitespace-nowrap">
+              {entries.map(([key, value]) => (
+                <div key={key} className="flex items-center justify-between gap-6">
+                  <span className="text-neutral-400">{METRIC_LABELS[key] || key}</span>
+                  <span className="text-neutral-100 font-mono text-[11px]">
+                    {formatMetricValue(key, value)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 w-2 h-2 rotate-45 bg-neutral-900 border-r border-b border-white/20" />
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function UserMessage({
   message,
@@ -169,6 +242,9 @@ function BotChatMessage({
               )}
             </button>
           )}
+          {message?.performanceMetrics && (
+            <MetricsTooltip metrics={message.performanceMetrics} />
+          )}
         </div>
       </div>
     </>
@@ -280,6 +356,9 @@ function BotImageMessage({
                 <Volume2 className="w-3 h-3" />
               )}
             </button>
+          )}
+          {message?.performanceMetrics && (
+            <MetricsTooltip metrics={message.performanceMetrics} />
           )}
         </div>
       </div>

@@ -180,6 +180,7 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
             text: res.data.data.botMessage.content,
             type: res.data.data.botMessage.type || "text",
             imageUrl: res.data.data.botMessage.imageUrl,
+            performanceMetrics: res.data.data.performanceMetrics || undefined,
           },
         ];
       });

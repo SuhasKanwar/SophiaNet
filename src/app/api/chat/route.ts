@@ -204,6 +204,7 @@ export async function POST(request: Request) {
         const model = response.model || "unknown";
         let replyText: string | undefined = response.response;
         let imageUrl: string | undefined = response.image_url;
+        const performanceMetrics = response.performance_metrics || null;
         if (!replyText) {
             replyText = "I'm sorry, I couldn't generate a response.";
         }
@@ -222,7 +223,7 @@ export async function POST(request: Request) {
         return Response.json({
             success: true,
             message: "Response generated successfully",
-            data: { userMessage, botMessage, attachments: files.map(f => f.name) }
+            data: { userMessage, botMessage, attachments: files.map(f => f.name), performanceMetrics }
         });
     }
     catch (error) {

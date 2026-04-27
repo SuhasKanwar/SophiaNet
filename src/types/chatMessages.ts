@@ -1,5 +1,17 @@
 export type variants = "chat" | "image";
 
+export interface PerformanceMetrics {
+  latency_ms?: number;
+  bleu_score?: number | null;
+  rouge_l_score?: number | null;
+  retrieval_rouge_l?: number | null;
+  chunks_retrieved?: number;
+  response_length?: number;
+  clip_score?: number | null;
+  image_size_bytes?: number;
+  [key: string]: unknown;
+}
+
 export interface ChatMessage {
   id: string;
   sender: "user" | "bot";
@@ -8,6 +20,7 @@ export interface ChatMessage {
   attachments?: string[];
   type?: variants;
   imageUrl?: string;
+  performanceMetrics?: PerformanceMetrics;
 }
 
 export interface UserMessageProps {
