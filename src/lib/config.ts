@@ -1,1 +1,1 @@
-export const MICROSERVICE_BASE_URL = process.env.MICROSERVICE_BASE_URL || 'http://localhost:8000';
+export const MICROSERVICE_BASE_URL = process.env.MICROSERVICE_BASE_URL || typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8000';

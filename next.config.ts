@@ -26,6 +26,14 @@ const nextConfig: NextConfig = {
         hostname: 'avatars.githubusercontent.com',
       }
     ]
+  },
+  async rewrites() {
+    return [
+      {
+        source: '/microservice/:path*',
+        destination: `${process.env.MICROSERVICE_BASE_URL || 'http://localhost:8000'}/:path*`,
+      },
+    ];
   }
 };
 
