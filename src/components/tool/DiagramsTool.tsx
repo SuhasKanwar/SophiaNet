@@ -60,23 +60,26 @@ export default function DiagramsTool() {
 
   return (
     <section
-      className="flex flex-col w-full px-3 pt-4 items-center mt-[var(--navbar-height,64px)]"
+      className="flex flex-col w-full px-3 pt-4 items-stretch mt-(--navbar-height,64px)"
       style={{ minHeight: "calc(100vh - var(--navbar-height,64px))" }}
     >
       <ToolsHeading firstPart="Diagrams" secondPart="Tool" />
       <DottedPattern />
 
-      <div className="flex-1 flex flex-col items-center justify-center w-full max-w-5xl mx-auto gap-4">
+      <div className="flex min-h-0 flex-1 flex-col gap-4 w-full">
         {diagram ? (
-          <div className="w-full overflow-auto">
+          <div className="flex-1 min-h-0 w-full">
             <MermaidChart code={diagram} />
           </div>
         ) : (
-          <p className="text-sm text-neutral-400 text-center px-4 max-w-xl">
-            Describe the diagram you want below. The backend will generate
-            Mermaid code, and the diagram will be rendered here. You can also
-            modify the Mermaid code in the editor and ask the tool to refine it.
-          </p>
+          <div className="flex flex-1 items-center justify-center px-4 text-center">
+            <p className="max-w-xl text-sm text-neutral-400">
+              Describe the diagram you want below. The backend will generate
+              Mermaid code, and the diagram will fill the screen on the dotted
+              canvas. You can also modify the Mermaid code in the editor and
+              ask the tool to refine it.
+            </p>
+          </div>
         )}
       </div>
 
