@@ -1,5 +1,9 @@
 # **SophiaNet – The Wisdom Network**
 
+Project documentation: [overview](docs/project_overview.md) · [documentation index](docs/README.md) · [literature review](docs/literature_review.md).
+
+Use these guides for implemented features, model details, architecture and current limitations.
+
 **Project Description:**
 SophiaNet is an AI-powered multimodal knowledge platform that transforms scattered information across **notes, videos, and the web** into structured, enhanced, and generative insights. Drawing inspiration from the Greek word *Sophia* (Wisdom), the system unifies **Digital Image Processing (DIP), Generative AI, and Autonomous Agents** to build an intelligent ecosystem for knowledge extraction, enrichment, and creation.
 
