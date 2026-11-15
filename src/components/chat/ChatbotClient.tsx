@@ -19,6 +19,11 @@ interface ChatbotClientProps {
 type ConversationVariant = "chat" | ToolVariant;
 
 export default function ChatbotClient({ chatID }: ChatbotClientProps) {
+  const [debateMode, setDebateMode] = useState(false);
+  const [panel, setPanel] = useState<Record<string, string>>({});
+  const [activeAgent, setActiveAgent] = useState("");
+  const abortDebate = useRef<AbortController | null>(null);
+  useEffect(() => () => abortDebate.current?.abort(), [chatID]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -146,6 +151,49 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
     setMessages((p) => [...p, optimistic]);
 
     try {
+      if (debateMode && conversationVariant === "chat") {
+        if (selectedFiles.length) throw new Error("Use standard chat for attachments.");
+        setPanel({});
+        setActiveAgent("advocate");
+        const controller = new AbortController();
+        abortDebate.current = controller;
+        const response = await fetch("/api/debate", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ conversationId: chatID, content }), signal: controller.signal,
+        });
+        if (!response.ok || !response.body) throw new Error("Debate unavailable. Please retry.");
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let saved = false;
+        try {
+          while (true) {
+            const chunk = await reader.read();
+            buffer += decoder.decode(chunk.value, { stream: !chunk.done });
+            let end;
+            while ((end = buffer.indexOf("\n")) >= 0) {
+              const line = buffer.slice(0, end); buffer = buffer.slice(end + 1);
+              if (!line.trim()) continue;
+              const event = JSON.parse(line);
+              if (event.type === "error") throw new Error(event.message);
+              if (event.type === "start") setActiveAgent(event.agent);
+              if (event.type === "contribution") setPanel(current => ({ ...current, [event.agent]: event.text }));
+              if (event.type === "saved") {
+                saved = true;
+                setMessages(current => [...current.filter(m => m.id !== optimistic.id),
+                  { id: event.userMessage.id, sender: "user", text: event.userMessage.content },
+                  { id: event.botMessage.id, sender: "bot", text: event.botMessage.content }]);
+              }
+            }
+            if (chunk.done) break;
+          }
+          if (!saved) throw new Error("Debate interrupted before saving. Please retry.");
+        } finally {
+          await reader.cancel().catch(() => {});
+          setActiveAgent("");
+        }
+        return;
+      }
       let res;
       if (selectedFiles.length > 0) {
         const fd = new FormData();
@@ -279,6 +327,15 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
         </div>
       )}
 
+      {conversationVariant === "chat" && (
+        <div className="mb-5 w-full max-w-6xl rounded-xl border border-indigo-400/20 bg-indigo-500/5 p-3">
+          <label className="flex items-center gap-3 text-sm font-medium">
+            <input type="checkbox" checked={debateMode} disabled={loading} onChange={event => { setDebateMode(event.target.checked); setPanel({}); }} />
+            Agent battleground
+          </label>
+          <p className="mt-1 text-xs text-neutral-400">Advocate → Critic → Judge. Evidence review takes longer and uses more model calls. Text only.</p>
+        </div>
+      )}
       <div className="w-full max-w-6xl h-full flex flex-col mx-auto pb-[100px]">
         <div
           ref={chatContainerRef}
@@ -362,7 +419,17 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
               )}
             </div>
           ))}
-          {loading && (
+          {debateMode && (loading || Object.keys(panel).length > 0) && (
+            <div className="grid gap-3 md:grid-cols-3" aria-label="Agent debate">
+              {["advocate", "critic", "judge"].map(role => (
+                <details key={role} open className="min-w-0 rounded-xl border border-indigo-400/20 bg-white/5 p-4">
+                  <summary className="cursor-pointer text-sm font-semibold capitalize">{role} · {panel[role] ? "Complete" : activeAgent === role ? "Working…" : "Waiting"}</summary>
+                  <p className="mt-3 max-h-80 overflow-auto whitespace-pre-wrap break-words text-sm leading-6 text-neutral-300">{panel[role] || (activeAgent === role ? "Reviewing the evidence…" : "Awaiting the previous contribution.")}</p>
+                </details>
+              ))}
+            </div>
+          )}
+          {loading && !debateMode && (
             <div ref={lastMessageRef} className="flex gap-3 justify-start">
               <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center border border-indigo-400/30 shrink-0">
                 <Bot className="w-4 h-4 text-indigo-300" />
@@ -386,6 +453,7 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
         onSend={sendMessage}
         loading={loading}
         onError={setError}
+        showFileUpload={!debateMode}
         onFilesChange={setSelectedFiles}
         bottomText={`Conversation ID: ${chatID}`}
       />
