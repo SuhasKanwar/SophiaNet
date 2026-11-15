@@ -72,7 +72,7 @@ export default function ChatInputComponent({
 
   return (
     <div
-      className={`w-full max-w-3xl mx-auto fixed z-10 bottom-0 left-[calc(var(--sidebar-width,60px))] right-0 px-3 pb-3 ${className}`}
+      className={`max-w-3xl mx-auto fixed z-10 bottom-0 left-[calc(var(--sidebar-width,60px))] right-0 px-3 pb-3 ${className}`}
     >
       {selectedFiles.length > 0 && (
         <div className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 mb-2 space-y-2 max-h-36 overflow-y-auto">
@@ -108,7 +108,7 @@ export default function ChatInputComponent({
 
         <input
           type="text"
-          className="flex-1 bg-transparent outline-none text-sm px-2 py-1 placeholder:text-neutral-500"
+          className="min-w-0 flex-1 bg-transparent outline-none text-sm px-2 py-1 placeholder:text-neutral-500"
           placeholder={placeholder}
           value={input}
           onChange={(e) => setInput(e.target.value)}

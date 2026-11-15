@@ -17,7 +17,7 @@ export async function POST(request: Request) {
   const history = await prisma.chat.findMany({ where: { conversationId, type: 'text' }, orderBy: { createdAt: 'desc' }, take: 20 });
   const upstream = await fetch(`${MICROSERVICE_BASE_URL}/generate-debate`, {
     method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt: content, session_history: history.reverse().map(m => ({ role: m.sender === 'user' ? 'user' : 'assistant', content: m.content })) }),
+    body: JSON.stringify({ prompt: content, session_history: history.reverse().map(m => ({ role: m.sender === 'user' ? 'user' : 'assistant', content: m.content || "" })) }),
     signal: AbortSignal.any([request.signal, AbortSignal.timeout(310000)]),
   }).catch(() => null);
   if (!upstream?.ok || !upstream.body) return Response.json({ message: "Debate service unavailable" }, { status: 502 });
@@ -26,11 +26,12 @@ export async function POST(request: Request) {
   const decoder = new TextDecoder();
   let buffer = "";
   let done = false;
+  let cancelled = false;
   const stream = new ReadableStream({
     async start(controller) {
-      const emit = (event: unknown) => controller.enqueue(encoder.encode(JSON.stringify(event) + "\n"));
+      const emit = (event: unknown) => { if (!cancelled) controller.enqueue(encoder.encode(JSON.stringify(event) + "\n")); };
       try {
-        while (true) {
+        while (!cancelled) {
           const chunk = await reader.read();
           buffer += decoder.decode(chunk.value, { stream: !chunk.done });
           if (buffer.length > 1000000) throw new Error('Stream exceeded limit');
@@ -54,15 +55,15 @@ export async function POST(request: Request) {
           }
           if (chunk.done) break;
         }
-        if (!done) throw new Error('Stream interrupted');
+        if (!done && !cancelled) throw new Error('Stream interrupted');
       } catch {
         emit({ type: 'error', message: 'The debate could not finish or be saved. Please retry.' });
       } finally {
         await reader.cancel().catch(() => {});
-        controller.close();
+        if (!cancelled) controller.close();
       }
     },
-    cancel() { return reader.cancel(); },
+    cancel() { cancelled = true; return reader.cancel(); },
   });
   return new Response(stream, { headers: { 'Content-Type': 'application/x-ndjson', 'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no' } });
 }
