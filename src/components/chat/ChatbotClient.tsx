@@ -226,12 +226,12 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
         duration: 2000,
       });
       
-      const response = await axios.get('/api/download-image', {
-        params: { url: imageUrl },
-        responseType: 'blob',
-      });
-      
-      const blob = response.data;
+      const blob = imageUrl.startsWith('data:image/png;base64,')
+        ? await fetch(imageUrl).then(response => response.blob())
+        : (await axios.get('/api/download-image', {
+            params: { url: imageUrl },
+            responseType: 'blob',
+          })).data;
       const url = URL.createObjectURL(blob);
       
       const link = document.createElement('a');
