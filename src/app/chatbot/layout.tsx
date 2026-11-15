@@ -3,6 +3,7 @@ import Sidebar from "@/components/Sidebar";
 import { Notebook, YoutubeIcon } from "lucide-react";
 
 const sidebarLinks = [
+	{ name: "Learning Studio", icon: <Notebook />, link: "/chatbot/t/studio" },
 	{
 		name: "Notes Tool",
 		icon: <Notebook />,
