@@ -4,8 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import {
   BookOpen,
   Check,
-  ChevronLeft,
-  ChevronRight,
   Code2,
   Download,
   Layers,
@@ -15,6 +13,9 @@ import {
   Video,
 } from "lucide-react";
 import ToolsHeading from "./ToolsHeading";
+import StudyCarousel from "./StudyCarousel";
+import { renderMarkdownWithCodeBlocks } from "@/lib/utils";
+import { motion, useReducedMotion } from "motion/react";
 
 interface Quiz {
   title: string;
@@ -65,6 +66,8 @@ export default function StudioTool() {
   const [script, setScript] = useState("");
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [deck, setDeck] = useState<Deck | null>(null);
+  const reducedMotion = useReducedMotion();
+  const [questionIndex, setQuestionIndex] = useState(0);
   const [card, setCard] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [answers, setAnswers] = useState<Record<number, number>>({});
@@ -106,6 +109,7 @@ export default function StudioTool() {
       setScript(data.response || "");
       setQuiz(data.quiz || null);
       setDeck(data.deck || null);
+      setQuestionIndex(0);
       setAnswers({});
       setRevealed(false);
       setCard(0);
@@ -165,7 +169,9 @@ export default function StudioTool() {
         className="mb-4 grid shrink-0 grid-cols-2 gap-3 xl:grid-cols-4"
       >
         {modes.map((item) => (
-          <button
+          <motion.button
+            whileHover={reducedMotion ? undefined : { y: -2 }}
+            whileTap={reducedMotion ? undefined : { scale: 0.98 }}
             key={item.id}
             type="button"
             aria-pressed={mode === item.id}
@@ -189,20 +195,32 @@ export default function StudioTool() {
             <span className="mt-1 block text-xs leading-5 text-neutral-500">
               {item.detail}
             </span>
-          </button>
+          </motion.button>
         ))}
       </div>
       <div className="grid min-h-0 min-w-0 flex-1 items-start gap-5 overflow-y-auto overscroll-contain lg:grid-cols-[minmax(260px,320px)_minmax(0,1fr)] lg:overflow-hidden">
-        <form
+        <motion.form
+          initial={{ opacity: 0, y: reducedMotion ? 0 : 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: reducedMotion ? 0 : 0.25 }}
           onSubmit={(event) => {
             event.preventDefault();
             void generate();
           }}
-          className="min-w-0 rounded-2xl border border-white/10 bg-white/[0.03] p-5 lg:max-h-full lg:overflow-y-auto"
+          className="min-w-0 rounded-2xl border border-indigo-400/15 bg-gradient-to-b from-indigo-500/[0.07] to-white/[0.02] p-5 lg:max-h-full lg:overflow-y-auto"
         >
-          <div className="mb-5 flex items-center gap-2 text-sm font-medium">
-            <Sparkles size={16} className="text-indigo-300" />
-            Create your session
+          <div className="mb-5 border-b border-white/10 pb-4">
+            <div className="flex items-center gap-3">
+              <span className="rounded-xl border border-indigo-400/20 bg-indigo-400/10 p-2.5">
+                <Sparkles size={18} className="text-indigo-300" />
+              </span>
+              <div>
+                <h2 className="text-sm font-semibold">Create your session</h2>
+                <p className="mt-1 text-xs text-neutral-500">
+                  Make it work for the way you learn.
+                </p>
+              </div>
+            </div>
           </div>
           <label
             htmlFor="studio-brief"
@@ -216,7 +234,7 @@ export default function StudioTool() {
             onChange={(event) => setPrompt(event.target.value)}
             disabled={loading}
             maxLength={7000}
-            rows={7}
+            rows={5}
             placeholder={
               mode === "quiz" || mode === "flashcards"
                 ? "What do you want to understand? Enter a topic or paste your notes…"
@@ -224,6 +242,9 @@ export default function StudioTool() {
             }
             className="mt-2 block w-full resize-y rounded-xl border border-white/10 bg-black/25 p-3 text-sm leading-6 outline-none focus:border-indigo-400"
           />
+          <div className="mt-2 text-right text-[10px] text-neutral-500">
+            {prompt.length.toLocaleString()} / 7,000 characters
+          </div>
           <label className="mt-4 block text-xs text-neutral-400">
             Audience
             <select
@@ -242,22 +263,26 @@ export default function StudioTool() {
               ))}
             </select>
           </label>
-          <label className="mt-4 block text-xs text-neutral-400">
-            Difficulty
-            <select
-              value={difficulty}
-              disabled={loading}
-              onChange={(event) => setDifficulty(event.target.value)}
-              className="mt-2 w-full rounded-lg border border-white/10 bg-[#11121a] p-2.5 text-sm text-neutral-200"
-            >
+          <fieldset className="mt-4 min-w-0">
+            <legend className="text-xs text-neutral-400">Difficulty</legend>
+            <div className="mt-2 grid grid-cols-3 gap-1.5 rounded-xl border border-white/10 bg-black/20 p-1">
               {["Foundational", "Intermediate", "Advanced"].map((value) => (
-                <option key={value}>{value}</option>
+                <button
+                  type="button"
+                  key={value}
+                  aria-pressed={difficulty === value}
+                  disabled={loading}
+                  onClick={() => setDifficulty(value)}
+                  className={`min-w-0 rounded-lg px-1 py-2.5 text-[10px] transition ${difficulty === value ? "bg-indigo-400/15 text-indigo-200 shadow-sm" : "text-neutral-500 hover:bg-white/5"}`}
+                >
+                  {value}
+                </button>
               ))}
-            </select>
-          </label>
+            </div>
+          </fieldset>
           <button
             disabled={loading || !prompt.trim()}
-            className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-500 px-4 py-3 text-sm font-medium hover:bg-indigo-400 disabled:opacity-40"
+            className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 px-4 py-3 text-sm font-medium shadow-lg shadow-indigo-950/30 hover:from-indigo-400 hover:to-violet-400 disabled:opacity-40"
           >
             {loading ? (
               <Loader2 size={16} className="animate-spin" />
@@ -279,7 +304,7 @@ export default function StudioTool() {
                 : "Drafted and reviewed by AI agents"}
             . Results stay here until you leave. Export to keep a copy.
           </p>
-        </form>
+        </motion.form>
         <div className="min-w-0 lg:h-full lg:overflow-y-auto lg:overscroll-contain lg:pr-1">
           {loading && (
             <div
@@ -323,7 +348,12 @@ export default function StudioTool() {
             </div>
           )}
           {hasResult && (
-            <div className="surface-enter space-y-4">
+            <motion.div
+              initial={{ opacity: 0, y: reducedMotion ? 0 : 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: reducedMotion ? 0 : 0.25 }}
+              className="space-y-4"
+            >
               <header className="flex flex-wrap items-start justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.025] p-4">
                 <div className="min-w-0 lg:h-full lg:overflow-y-auto lg:overscroll-contain lg:pr-1">
                   <p className="text-[10px] uppercase tracking-widest text-indigo-300">
@@ -343,53 +373,61 @@ export default function StudioTool() {
                 </button>
               </header>
               {script && (
-                <pre className="min-w-0 whitespace-pre-wrap [overflow-wrap:anywhere] rounded-2xl border border-white/10 bg-white/[0.025] p-5 text-sm leading-7">
-                  {script}
-                </pre>
+                <div className="studio-markdown min-w-0 rounded-2xl border border-white/10 bg-white/[0.025] p-5 text-sm leading-7">
+                  {renderMarkdownWithCodeBlocks(script)}
+                </div>
               )}
               {deck && (
-                <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-indigo-500/10 to-white/[0.025] p-5 sm:p-7">
-                  <p className="text-center text-xs text-neutral-400">
-                    Card {card + 1} of {deck.cards.length} ·{" "}
-                    {flipped ? "Answer" : "Question"}
-                  </p>
-                  <button
-                    aria-label={flipped ? "Show question" : "Reveal answer"}
-                    onClick={() => setFlipped(!flipped)}
-                    className="my-5 flex min-h-64 w-full min-w-0 [overflow-wrap:anywhere] items-center justify-center rounded-xl border border-white/10 bg-black/20 p-6 text-center text-lg leading-8"
+                <StudyCarousel
+                  label="Card"
+                  index={card}
+                  count={deck.cards.length}
+                  disabled={loading}
+                  onChange={(index) => {
+                    setCard(index);
+                    setFlipped(false);
+                  }}
+                >
+                  <div
+                    className={`relative overflow-hidden rounded-2xl border p-5 sm:p-7 ${flipped ? "border-emerald-400/25 bg-gradient-to-br from-emerald-500/10 to-white/[0.02]" : "border-indigo-400/25 bg-gradient-to-br from-indigo-500/15 to-white/[0.02]"}`}
                   >
-                    <span>
-                      {flipped ? deck.cards[card].back : deck.cards[card].front}
-                    </span>
-                  </button>
-                  <div className="flex items-center justify-between gap-3">
-                    <button
-                      aria-label="Previous card"
-                      disabled={card === 0}
-                      onClick={() => {
-                        setCard(card - 1);
-                        setFlipped(false);
+                    <div className="flex items-center justify-between text-[10px] font-medium uppercase tracking-widest">
+                      <span
+                        className={
+                          flipped ? "text-emerald-300" : "text-indigo-300"
+                        }
+                      >
+                        {flipped ? "Answer" : "Recall challenge"}
+                      </span>
+                      <Layers size={16} className="text-neutral-500" />
+                    </div>
+                    <motion.button
+                      key={flipped ? "back" : "front"}
+                      type="button"
+                      aria-label={flipped ? "Show question" : "Reveal answer"}
+                      aria-pressed={flipped}
+                      onClick={() => setFlipped(!flipped)}
+                      initial={{
+                        opacity: reducedMotion ? 1 : 0,
+                        rotateX: reducedMotion ? 0 : 12,
                       }}
-                      className="rounded-lg border border-white/15 p-2 disabled:opacity-30"
+                      animate={{ opacity: 1, rotateX: 0 }}
+                      transition={{ duration: reducedMotion ? 0 : 0.22 }}
+                      className="my-4 flex min-h-64 w-full min-w-0 items-center justify-center rounded-xl px-2 py-6 text-center text-xl leading-9 [overflow-wrap:anywhere] focus-visible:outline-2 focus-visible:outline-indigo-400"
                     >
-                      <ChevronLeft size={18} />
-                    </button>
-                    <p className="text-xs text-neutral-500">
-                      Click the card to flip
+                      <span>
+                        {flipped
+                          ? deck.cards[card].back
+                          : deck.cards[card].front}
+                      </span>
+                    </motion.button>
+                    <p className="border-t border-white/10 pt-4 text-center text-xs text-neutral-500">
+                      {flipped
+                        ? "Take a moment to connect the answer to the question."
+                        : "Think of your answer, then click the card to reveal."}
                     </p>
-                    <button
-                      aria-label="Next card"
-                      disabled={card === deck.cards.length - 1}
-                      onClick={() => {
-                        setCard(card + 1);
-                        setFlipped(false);
-                      }}
-                      className="rounded-lg border border-white/15 p-2 disabled:opacity-30"
-                    >
-                      <ChevronRight size={18} />
-                    </button>
                   </div>
-                </div>
+                </StudyCarousel>
               )}
               {quiz && (
                 <>
@@ -401,70 +439,84 @@ export default function StudioTool() {
                     </span>
                     <span>
                       {revealed
-                        ? "Review your explanations below"
+                        ? "Review each question’s explanation"
                         : "Choose one answer per question"}
                     </span>
                   </div>
-                  {quiz.questions.map((question, index) => (
-                    <fieldset
-                      key={index}
-                      className="min-w-0 rounded-xl border border-white/10 bg-white/[0.025] p-4 sm:p-5"
-                    >
-                      <legend className="max-w-full [overflow-wrap:anywhere] px-2 text-sm font-medium leading-6">
-                        {index + 1}. {question.question}
-                      </legend>
-                      <div className="mt-2 space-y-2">
-                        {question.options.map((option, choice) => (
-                          <label
-                            key={choice}
-                            className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 text-sm leading-6 ${revealed && choice === question.answer ? "border-emerald-400/40 bg-emerald-400/5" : answers[index] === choice ? "border-indigo-400/40 bg-indigo-400/10" : "border-white/5 hover:bg-white/5"}`}
+                  <StudyCarousel
+                    label="Question"
+                    index={questionIndex}
+                    count={quiz.questions.length}
+                    disabled={loading}
+                    onChange={setQuestionIndex}
+                  >
+                    {quiz.questions.map(
+                      (question, index) =>
+                        index === questionIndex && (
+                          <fieldset
+                            key={index}
+                            className="min-w-0 rounded-xl border border-white/10 bg-white/[0.025] p-4 sm:p-5"
                           >
-                            <input
-                              type="radio"
-                              name={`question-${index}`}
-                              checked={answers[index] === choice}
-                              disabled={revealed || loading}
-                              onChange={() =>
-                                setAnswers((current) => ({
-                                  ...current,
-                                  [index]: choice,
-                                }))
-                              }
-                              className="mt-1.5 accent-indigo-400"
-                            />
-                            <span className="min-w-0 [overflow-wrap:anywhere]">
-                              {option}
-                            </span>
-                          </label>
-                        ))}
-                      </div>
-                      {revealed && (
-                        <div className="mt-4 border-t border-white/10 pt-3 text-sm leading-6">
-                          <p
-                            className={
-                              answers[index] === question.answer
-                                ? "text-emerald-300"
-                                : "text-amber-300"
-                            }
-                          >
-                            {answers[index] === question.answer
-                              ? "Correct"
-                              : "Review this answer"}
-                          </p>
-                          <p className="mt-1 text-neutral-400">
-                            {question.explanation}
-                          </p>
-                        </div>
-                      )}
-                    </fieldset>
-                  ))}
+                            <legend className="max-w-full [overflow-wrap:anywhere] px-2 text-sm font-medium leading-6">
+                              {index + 1}. {question.question}
+                            </legend>
+                            <div className="mt-2 space-y-2">
+                              {question.options.map((option, choice) => (
+                                <label
+                                  key={choice}
+                                  className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 text-sm leading-6 ${revealed && choice === question.answer ? "border-emerald-400/40 bg-emerald-400/5" : answers[index] === choice ? "border-indigo-400/40 bg-indigo-400/10" : "border-white/5 hover:bg-white/5"}`}
+                                >
+                                  <input
+                                    type="radio"
+                                    name={`question-${index}`}
+                                    checked={answers[index] === choice}
+                                    disabled={revealed || loading}
+                                    onChange={() =>
+                                      setAnswers((current) => ({
+                                        ...current,
+                                        [index]: choice,
+                                      }))
+                                    }
+                                    className="mt-1.5 accent-indigo-400"
+                                  />
+                                  <span className="min-w-0 [overflow-wrap:anywhere]">
+                                    {option}
+                                  </span>
+                                </label>
+                              ))}
+                            </div>
+                            {revealed && (
+                              <div className="mt-4 border-t border-white/10 pt-3 text-sm leading-6">
+                                <p
+                                  className={
+                                    answers[index] === question.answer
+                                      ? "text-emerald-300"
+                                      : "text-amber-300"
+                                  }
+                                >
+                                  {answers[index] === question.answer
+                                    ? "Correct"
+                                    : "Review this answer"}
+                                </p>
+                                <p className="mt-1 text-neutral-400">
+                                  {question.explanation}
+                                </p>
+                              </div>
+                            )}
+                          </fieldset>
+                        ),
+                    )}
+                  </StudyCarousel>
                   {!revealed ? (
                     <button
                       disabled={
                         loading ||
                         Object.keys(answers).length !== quiz.questions.length
                       }
-                      onClick={() => setRevealed(true)}
+                      onClick={() => {
+                        setRevealed(true);
+                        setQuestionIndex(0);
+                      }}
                       className="inline-flex items-center gap-2 rounded-lg bg-indigo-500 px-5 py-3 text-sm disabled:opacity-40"
                     >
                       <Check size={16} />
@@ -476,6 +528,7 @@ export default function StudioTool() {
                         disabled={loading}
                         onClick={() => {
                           setAnswers({});
+                          setQuestionIndex(0);
                           setRevealed(false);
                         }}
                         className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2.5 text-sm"
@@ -509,7 +562,7 @@ export default function StudioTool() {
                 facts before sharing. Scores reflect this practice session, not
                 a proficiency assessment.
               </p>
-            </div>
+            </motion.div>
           )}
         </div>
       </div>

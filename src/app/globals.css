@@ -209,3 +209,19 @@ html {
     scroll-behavior: auto !important;
   }
 }
+
+/* Keep shared Markdown/code rendering contained in the Studio results pane. */
+.studio-markdown { overflow-wrap: anywhere; }
+.studio-markdown > * { min-width: 0; max-width: 100%; }
+.studio-markdown h1, .studio-markdown h2, .studio-markdown h3 { font-weight: 600; margin: 1rem 0 0.5rem; line-height: 1.5; }
+.studio-markdown h1 { font-size: 1.4rem; }
+.studio-markdown h2 { font-size: 1.2rem; }
+.studio-markdown h3 { font-size: 1.05rem; }
+.studio-markdown p { margin: 0.6rem 0; }
+.studio-markdown ul { list-style: disc; padding-left: 1.4rem; }
+.studio-markdown ol { list-style: decimal; padding-left: 1.4rem; }
+.studio-markdown a { color: #a5b4fc; text-decoration: underline; }
+.studio-markdown pre { max-width: 100%; overflow-x: auto; }
+.studio-markdown table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; }
+.studio-markdown td, .studio-markdown th { padding: 0.5rem; border: 1px solid #ffffff20; }
+.studio-markdown blockquote { border-left: 2px solid #818cf8; padding-left: 1rem; color: #a3a3a3; }
