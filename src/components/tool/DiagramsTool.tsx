@@ -44,7 +44,7 @@ export default function DiagramsTool() {
   };
 
   return (
-    <section className="mx-auto flex w-full max-w-7xl min-w-0 flex-col gap-5 px-4 pb-6 pt-24 sm:px-6">
+    <section className="mx-auto flex w-full max-w-7xl min-w-0 flex-col gap-5 px-4 pb-6 pt-40 sm:px-6">
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <ToolsHeading firstPart="Diagrams" secondPart="Tool" />

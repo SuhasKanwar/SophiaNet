@@ -43,7 +43,7 @@ export default function ResearchStudio() {
   };
 
   return (
-    <section className="mx-auto w-full max-w-6xl px-4 pb-12 pt-24 sm:px-6">
+    <section className="mx-auto w-full max-w-6xl px-4 pb-12 pt-40 sm:px-6">
       <ToolsHeading firstPart="Research Paper" secondPart="Studio" />
       <p className="mt-3 max-w-2xl text-sm leading-6 text-neutral-400">A clearer starting point for your next discovery. Search scholarly literature, explore the evidence, and build a reading list.</p>
       <form onSubmit={search} className="mt-7 rounded-2xl border border-indigo-400/25 bg-gradient-to-br from-indigo-500/10 to-white/[0.02] p-4 sm:p-6">
