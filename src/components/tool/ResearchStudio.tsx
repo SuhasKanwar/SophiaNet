@@ -82,7 +82,7 @@ export default function ResearchStudio() {
         {results.search_query && <div className="mb-5 rounded-xl border border-indigo-400/20 bg-indigo-400/5 p-4"><p className="text-xs font-medium uppercase tracking-wider text-indigo-300">AI search brief</p><p className="mt-2 text-sm text-neutral-200">{results.focus}</p><p className="mt-2 text-xs text-neutral-400">Search phrase: {results.search_query}</p></div>}
         {results.warnings.map(warning => <p role="alert" key={warning} className="mb-4 rounded-lg border border-amber-400/30 bg-amber-400/5 p-3 text-sm text-amber-200">{warning}</p>)}
         {!results.papers.length && <div role="status" className="rounded-xl border border-white/10 p-10 text-center text-sm text-neutral-400">No matching papers found. Try broader terms or an earlier year.</div>}
-        <div className="space-y-4">{results.papers.map(paper => <article key={paper.url} className="min-w-0 rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.055] to-indigo-500/[0.025] p-4 shadow-sm transition hover:border-indigo-400/40 sm:p-6">
+        <div className="space-y-4">{results.papers.map((paper, index) => <article key={paper.url} style={{ animationDelay: `${Math.min(index, 9) * 65}ms` }} className="research-paper-enter min-w-0 rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.055] to-indigo-500/[0.025] p-4 shadow-sm transition hover:border-indigo-400/40 sm:p-6">
           <div className="flex items-start gap-3 sm:gap-4">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-400/10 font-mono text-xs text-indigo-300">{String(paper.rank).padStart(2,'0')}</span>
             <div className="min-w-0 flex-1">
