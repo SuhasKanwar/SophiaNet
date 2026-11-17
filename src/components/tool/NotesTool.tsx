@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useToolState } from "@/providers/ToolSessionProvider";
+
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FileUpload } from "../ui/file-upload";
 
@@ -8,19 +10,22 @@ import axios from "axios";
 import { useToast } from "@/providers/ToastProvider";
 
 export default function NotesTool() {
-	const [files, setFiles] = useState<File[]>([]);
+	const [files, setFiles] = useToolState<File[]>("notes-tool", "files", [], true);
 	const [extracting, setExtracting] = useState(false);
-	const [conversationId, setConversationId] = useState<string | null>(null);
+	const [conversationId, setConversationId] = useToolState<string | null>("notes-tool", "conversationId", null);
 	const { showToast } = useToast();
 	const router = useRouter();
+  const request = useRef<AbortController | null>(null);
+  useEffect(() => () => request.current?.abort(), []);
 
-	const handleFileUpload = (files: File[]) => {
+	const handleFileUpload = useCallback((files: File[]) => {
 		setFiles(files);
-	};
+	}, [setFiles]);
 
 	const handleExtract = async () => {
 		if (!files.length || extracting) return;
 		setExtracting(true);
+    const controller = new AbortController(); request.current = controller;
 
 		try {
 			let convId = conversationId;
@@ -28,7 +33,7 @@ export default function NotesTool() {
 				const convRes = await axios.post("/api/tool-conversation", {
 					title: "Notes OCR",
 					variant: "notes_tool",
-				});
+				}, { signal: controller.signal });
 				if (!convRes.data?.success) {
 					throw new Error(convRes.data?.message || "Failed to start conversation");
 				}
@@ -44,6 +49,7 @@ export default function NotesTool() {
 
 			const res = await axios.post("/api/tool-chat", fd, {
 				headers: { "Content-Type": "multipart/form-data" },
+          signal: controller.signal,
 			});
 
 			if (!res.data?.success) {
@@ -58,6 +64,7 @@ export default function NotesTool() {
 
 			router.push(`/chatbot/c/${convId}`);
 		} catch (e: any) {
+      if (controller.signal.aborted) return;
 			const msg = e?.response?.data?.message || e?.message || "Extraction failed";
 			showToast({ type: "error", title: "OCR Error", message: msg });
 		} finally {
@@ -68,7 +75,7 @@ export default function NotesTool() {
 	return (
 		<section className="flex flex-col w-full px-3 pt-4 items-center min-h-full mt-[var(--navbar-height,64px)]">
 			<h1 className="absolute z-10 top-24 transition-[margin] duration-300 left-[calc(var(--sidebar-width)+1rem)] text-white text-2xl font-bold mb-6">Notes <span className="text-indigo-400">Tool (OCR)</span></h1>
-			<FileUpload onChange={handleFileUpload}>
+			<FileUpload initialFiles={files} onChange={handleFileUpload}>
 				<>
 					<button
 						onClick={handleExtract}

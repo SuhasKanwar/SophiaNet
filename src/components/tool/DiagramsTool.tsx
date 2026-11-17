@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useToolState } from "@/providers/ToolSessionProvider";
+
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { parseChatCommand } from "@/lib/chat-command";
@@ -11,10 +13,12 @@ import DottedPattern from "@/components/ui/dotted-pattern";
 
 export default function DiagramsTool() {
   const router = useRouter();
+  const request = useRef<AbortController | null>(null);
+  useEffect(() => () => request.current?.abort(), []);
   const [files, setFiles] = useState<File[]>([]);
-  const [input, setInput] = useState("");
+  const [input, setInput] = useToolState("diagrams-tool", "input", "");
   const [loading, setLoading] = useState(false);
-  const [code, setCode] = useState("");
+  const [code, setCode] = useToolState("diagrams-tool", "code", "");
   const [svg, setSvg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,12 +27,14 @@ export default function DiagramsTool() {
     const originalInput = input;
     const prompt = input.trim() || "Create a diagram from the attached reference material.";
     setLoading(true);
+    const controller = new AbortController(); request.current = controller;
     setError(null);
     try {
       const parsed = parseChatCommand(prompt);
       if (parsed.command) {
         if (files.length) throw new Error("Agent battleground supports text only. Remove attachments first.");
         const conversation = await createConversation(parsed.content, conversationVariant.CHAT);
+        if (controller.signal.aborted) return;
         sessionStorage.setItem(`sophianet-first-message:${conversation.id}`, originalInput);
         router.push(`/chatbot/c/${conversation.id}`);
         return;
@@ -37,12 +43,13 @@ export default function DiagramsTool() {
       payload.append("prompt", parsed.content);
       payload.append("code", code);
       files.forEach(file => payload.append("files", file));
-      const { data } = await axios.post("/api/diagram", payload);
+      const { data } = await axios.post("/api/diagram", payload, { signal: controller.signal });
       if (typeof data.response !== "string" || !data.response.trim()) {
         throw new Error("No diagram was returned. Please try again.");
       }
       setCode(data.response.trim().replace(/^```(?:mermaid)?\s*\n?/i, "").replace(/\s*```$/, ""));
     } catch (error: unknown) {
+      if (controller.signal.aborted) return;
       setInput(originalInput);
       setError(axios.isAxiosError(error)
         ? error.response?.data?.message || "Diagram generation failed. Please try again."

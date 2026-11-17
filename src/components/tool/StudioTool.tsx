@@ -1,5 +1,7 @@
 "use client";
 
+import { useToolState } from "@/providers/ToolSessionProvider";
+
 import { useEffect, useRef, useState } from "react";
 import {
   BookOpen,
@@ -59,22 +61,22 @@ const modes = [
 type Mode = (typeof modes)[number]["id"];
 
 export default function StudioTool() {
-  const [mode, setMode] = useState<Mode>("quiz");
-  const [prompt, setPrompt] = useState("");
-  const [audience, setAudience] = useState("General learner");
-  const [difficulty, setDifficulty] = useState("Foundational");
-  const [script, setScript] = useState("");
-  const [quiz, setQuiz] = useState<Quiz | null>(null);
-  const [deck, setDeck] = useState<Deck | null>(null);
+  const [mode, setMode] = useToolState<Mode>("studio", "mode", "quiz");
+  const [prompt, setPrompt] = useToolState("studio", `${mode}.prompt`, "");
+  const [audience, setAudience] = useToolState("studio", "audience", "General learner");
+  const [difficulty, setDifficulty] = useToolState("studio", "difficulty", "Foundational");
+  const [script, setScript] = useToolState("studio", `${mode}.script`, "");
+  const [quiz, setQuiz] = useToolState<Quiz | null>("studio", `${mode}.quiz`, null);
+  const [deck, setDeck] = useToolState<Deck | null>("studio", `${mode}.deck`, null);
   const reducedMotion = useReducedMotion();
-  const [questionIndex, setQuestionIndex] = useState(0);
-  const [card, setCard] = useState(0);
-  const [flipped, setFlipped] = useState(false);
-  const [answers, setAnswers] = useState<Record<number, number>>({});
-  const [revealed, setRevealed] = useState(false);
+  const [questionIndex, setQuestionIndex] = useToolState("studio", `${mode}.questionIndex`, 0);
+  const [card, setCard] = useToolState("studio", `${mode}.card`, 0);
+  const [flipped, setFlipped] = useToolState("studio", `${mode}.flipped`, false);
+  const [answers, setAnswers] = useToolState<Record<number, number>>("studio", `${mode}.answers`, {});
+  const [revealed, setRevealed] = useToolState("studio", `${mode}.revealed`, false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [resultTopic, setResultTopic] = useState("");
+  const [resultTopic, setResultTopic] = useToolState("studio", `${mode}.resultTopic`, "");
   const request = useRef<AbortController | null>(null);
   useEffect(() => () => request.current?.abort(), []);
   const active = modes.find((item) => item.id === mode)!;
@@ -178,9 +180,6 @@ export default function StudioTool() {
             disabled={loading}
             onClick={() => {
               setMode(item.id);
-              setQuiz(null);
-              setDeck(null);
-              setScript("");
               setError("");
             }}
             className={`rounded-xl border p-4 text-left transition disabled:opacity-50 ${mode === item.id ? "border-indigo-400/60 bg-indigo-500/10" : "border-white/10 bg-white/[0.025] hover:border-white/25"}`}

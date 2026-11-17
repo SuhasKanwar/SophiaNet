@@ -1,4 +1,5 @@
 "use client";
+import { useToolState } from "@/providers/ToolSessionProvider";
 
 import { parseChatCommand } from "@/lib/chat-command";
 import { useState } from "react";
@@ -10,7 +11,7 @@ import { SUGGESTIONS } from "@/data/suggestion";
 import { conversationVariant, createConversation } from "@/tools/chatUtils";
 
 export default function DashboardPage() {
-  const [input, setInput] = useState("");
+  const [input, setInput] = useToolState("chat-draft", "input", "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);

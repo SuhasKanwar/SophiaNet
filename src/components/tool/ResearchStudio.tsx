@@ -1,5 +1,7 @@
 "use client";
 
+import { useToolState } from "@/providers/ToolSessionProvider";
+
 import ToolsHeading from "./ToolsHeading";
 
 import { useEffect, useRef, useState } from 'react';
@@ -12,9 +14,9 @@ interface Paper {
 interface Results { query: string; papers: Paper[]; warnings: string[]; sources_searched: string[]; ranking: string; search_query?: string; focus?: string }
 
 export default function ResearchStudio() {
-  const [query, setQuery] = useState('');
-  const [since, setSince] = useState('');
-  const [results, setResults] = useState<Results | null>(null);
+  const [query, setQuery] = useToolState("research-studio", "query", '');
+  const [since, setSince] = useToolState("research-studio", "since", '');
+  const [results, setResults] = useToolState<Results | null>("research-studio", "results", null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const request = useRef<AbortController | null>(null);

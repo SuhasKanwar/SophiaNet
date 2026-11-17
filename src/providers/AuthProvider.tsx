@@ -1,5 +1,7 @@
 "use client";
 
+import { ToolSessionProvider } from "./ToolSessionProvider";
+import { TOOL_SESSION_PREFIX } from "@/lib/tool-session";
 import { SessionProvider } from "next-auth/react";
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
@@ -13,6 +15,16 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   const { showToast } = useToast();
   const lastRedirectRef = useRef<string | null>(null);
   const prevStatusRef = useRef<typeof status | null>(null);
+
+  useEffect(() => {
+    if (status !== "unauthenticated") return;
+    try {
+      for (let index = sessionStorage.length - 1; index >= 0; index--) {
+        const key = sessionStorage.key(index);
+        if (key?.startsWith(TOOL_SESSION_PREFIX)) sessionStorage.removeItem(key);
+      }
+    } catch { /* Browser storage may be disabled. */ }
+  }, [status]);
 
   const publicAllowed = ["/", "/auth/signin"];
 
@@ -57,6 +69,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   if (status === "loading") return null;
   if (status === "unauthenticated" && !publicAllowed.includes(pathname)) return null;
 
+  if (status === "authenticated" && session?.user?.id) return <ToolSessionProvider key={session.user.id} user={session.user.id}>{children}</ToolSessionProvider>;
   return <>{children}</>;
 }
 

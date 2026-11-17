@@ -1,3 +1,4 @@
+import { ToolStateBoundary } from "@/providers/ToolSessionProvider";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import { FileSearch, GraduationCap, Notebook, Workflow, YoutubeIcon } from "lucide-react";
@@ -36,7 +37,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 				className="flex flex-col flex-1 min-h-[90vh] overflow-hidden transition-[margin] duration-300"
 				style={{ marginLeft: "var(--sidebar-width, 60px)" }}
 			>
-				{children}
+				<ToolStateBoundary>{children}</ToolStateBoundary>
 			</div>
 		</main>
 	);

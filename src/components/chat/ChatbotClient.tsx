@@ -1,4 +1,5 @@
 "use client";
+import { useToolState } from "@/providers/ToolSessionProvider";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { parseChatCommand } from "@/lib/chat-command";
 import { Bot } from "lucide-react";
@@ -26,7 +27,7 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
   const abortDebate = useRef<AbortController | null>(null);
   useEffect(() => () => abortDebate.current?.abort(), [chatID]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [input, setInput] = useState("");
+  const [input, setInput] = useToolState(`chat:${chatID}`, "input", "");
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

@@ -29,11 +29,13 @@ const secondaryVariant = {
 export const FileUpload = ({
   onChange,
   children,
+  initialFiles = [],
 }: {
   onChange?: (files: File[]) => void;
+  initialFiles?: File[];
   children?: React.ReactNode;
 }) => {
-  const [files, setFiles] = useState<File[]>([]);
+  const [files, setFiles] = useState<File[]>(initialFiles);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (newFiles: File[]) => {

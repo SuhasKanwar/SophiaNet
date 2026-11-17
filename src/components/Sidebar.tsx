@@ -6,6 +6,7 @@ import Image from "next/image";
 import { ToolButton, NewChatButton, ChatItem, ChatSession } from "./SidebarComponents";
 import { useToast } from "@/providers/ToastProvider";
 import axios from "axios";
+import ToolSessionControls from "./ToolSessionControls";
 import ConfirmationModal from "./ConfirmationModal";
 
 const MAX_TITLE_LEN = 25;
@@ -295,6 +296,7 @@ export default function Sidebar({
             ))}
           </nav>
         </div>
+        <ToolSessionControls expanded={expanded} />
 
         {expanded && (
           <>

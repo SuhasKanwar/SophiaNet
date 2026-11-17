@@ -1,19 +1,23 @@
 "use client";
 
+import { useToolState } from "@/providers/ToolSessionProvider";
+
 import ToolsHeading from "./ToolsHeading";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Youtube } from "lucide-react";
 import { useToast } from "@/providers/ToastProvider";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 
 export default function YoutubeVideoTool() {
-  const [value, setValue] = useState("");
+  const [value, setValue] = useToolState("youtube-video-tool", "value", "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { showToast } = useToast();
-  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [conversationId, setConversationId] = useToolState<string | null>("youtube-video-tool", "conversationId", null);
   const router = useRouter();
+  const request = useRef<AbortController | null>(null);
+  useEffect(() => () => request.current?.abort(), []);
 
   const validate = () => {
     if (!value.trim()) {
@@ -48,6 +52,7 @@ export default function YoutubeVideoTool() {
     }
     setError(null);
     setLoading(true);
+    const controller = new AbortController(); request.current = controller;
 
     try {
       let convId = conversationId;
@@ -55,7 +60,7 @@ export default function YoutubeVideoTool() {
         const convRes = await axios.post("/api/tool-conversation", {
           title: "YouTube Video",
           variant: "youtube_tool",
-        });
+        }, { signal: controller.signal });
         if (!convRes.data?.success) {
           throw new Error(convRes.data?.message || "Failed to start conversation");
         }
@@ -70,7 +75,7 @@ export default function YoutubeVideoTool() {
         conversationId: convId,
         content,
         history: [],
-      });
+      }, { signal: controller.signal });
       if (!chatRes.data?.success) {
         throw new Error(chatRes.data?.message || "Failed to process input");
       }
@@ -83,6 +88,7 @@ export default function YoutubeVideoTool() {
 
       router.push(`/chatbot/c/${convId}`);
     } catch (e: any) {
+      if (controller.signal.aborted) return;
       const msg = e?.response?.data?.message || e?.message || "Request failed";
       setError(msg);
       showToast({ type: "error", title: "YouTube Tool Error", message: msg });
