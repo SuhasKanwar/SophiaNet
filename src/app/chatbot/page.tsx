@@ -1,5 +1,6 @@
 "use client";
 
+import { parseChatCommand } from "@/lib/chat-command";
 import { useState } from "react";
 import SuggestionCard from "@/components/SuggestionCard";
 import { useRouter } from "next/navigation";
@@ -40,13 +41,22 @@ export default function DashboardPage() {
 
   const handleSend = async () => {
     if (!input.trim() || loading) return;
+    let parsed;
+    try {
+      parsed = parseChatCommand(input);
+      if (parsed.command && selectedFiles.length) throw new Error("Remove attachments before using agent battleground.");
+    } catch (error) { setError(error instanceof Error ? error.message : "Invalid command"); return; }
     setLoading(true);
     setError(null);
     const ask = input.trim();
     setInput("");
     try {
-      const conversation = await createConversation(ask || "New Chat", conversationVariant.CHAT);
-      await sendFirstMessage(conversation.id, ask);
+      const conversation = await createConversation(parsed.content || "New Chat", conversationVariant.CHAT);
+      if (parsed.command) {
+        sessionStorage.setItem(`sophianet-first-message:${conversation.id}`, ask);
+      } else {
+        await sendFirstMessage(conversation.id, parsed.content);
+      }
       router.push(`/chatbot/c/${conversation.id}`);
     } catch (e: any) {
       const msg =
@@ -102,7 +112,8 @@ export default function DashboardPage() {
         setInput={setInput}
         onSend={handleSend}
         loading={loading}
-        placeholder="Ask anything..."
+        enableCommands
+        placeholder="Ask anything, or type / for commands…"
         onError={setError}
         onFilesChange={setSelectedFiles}
         bottomText="This assistant can summarize, explain concepts, and turn material into study aids."

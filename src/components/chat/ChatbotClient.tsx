@@ -127,11 +127,12 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
     return null;
   };
 
-  const sendMessage = async () => {
-    if (!input.trim() || loading) return;
+  const sendMessage = async (firstMessage?: string) => {
+    const messageInput = firstMessage ?? input;
+    if (!messageInput.trim() || loading) return;
     let parsed;
     try {
-      parsed = conversationVariant === "chat" ? parseChatCommand(input) : { content: input, command: null };
+      parsed = conversationVariant === "chat" ? parseChatCommand(messageInput) : { content: messageInput, command: null };
       if (parsed.command && selectedFiles.length) throw new Error("Remove attachments before using agent battleground.");
     } catch (error) { setError(error instanceof Error ? error.message : "Invalid command"); return; }
     const isDebate = parsed.command === "agent-battleground";
@@ -147,7 +148,7 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
       createdAt: m.createdAt,
     }));
 
-    const originalInput = input;
+    const originalInput = messageInput;
     const content = parsed.content;
     const attachments = selectedFiles.map((f) => f.name);
     const optimistic: ChatMessage = {
@@ -254,6 +255,17 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
       setSelectedFiles([]);
     }
   };
+
+  const sendMessageRef = useRef(sendMessage);
+  useEffect(() => { sendMessageRef.current = sendMessage; });
+  useEffect(() => {
+    if (initialLoading || error || conversationVariant !== "chat") return;
+    const key = `sophianet-first-message:${chatID}`;
+    const draft = sessionStorage.getItem(key);
+    if (!draft) return;
+    sessionStorage.removeItem(key);
+    void sendMessageRef.current(draft);
+  }, [chatID, initialLoading, error, conversationVariant]);
 
   const copyToClipboard = async (text: string, messageId: string) => {
     try {
