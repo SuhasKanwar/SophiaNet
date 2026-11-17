@@ -178,3 +178,34 @@ html {
 .mermaid-dark text {
   fill: #e5e7eb !important;
 }
+/* Opacity keeps fixed composers and tool headings in their existing coordinate space. */
+@keyframes page-reveal {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes surface-reveal {
+  from { opacity: 0; translate: 0 8px; }
+  to { opacity: 1; translate: 0 0; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .page-transition { animation: page-reveal 240ms ease-out both; }
+  .surface-enter { animation: surface-reveal 320ms ease-out both; }
+  .page-transition article { animation: surface-reveal 320ms ease-out both; }
+  .page-transition article:nth-child(2) { animation-delay: 40ms; }
+  .page-transition article:nth-child(3) { animation-delay: 80ms; }
+  .page-transition button, .page-transition a, .page-transition input, .page-transition textarea {
+    transition-property: color, background-color, border-color, box-shadow, opacity;
+    transition-duration: 160ms;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
