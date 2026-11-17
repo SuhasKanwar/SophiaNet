@@ -50,6 +50,14 @@ export default function Sidebar({
   const [processing, setProcessing] = useState(false);
   const { showToast } = useToast();
 
+  useEffect(() => {
+    const mobile = window.matchMedia("(max-width: 767px)");
+    const collapseOnMobile = () => { if (mobile.matches) setExpanded(false); };
+    collapseOnMobile();
+    mobile.addEventListener("change", collapseOnMobile);
+    return () => mobile.removeEventListener("change", collapseOnMobile);
+  }, []);
+
   const currentWidth = expanded ? widthExpanded : widthCollapsed;
 
   useEffect(() => {
