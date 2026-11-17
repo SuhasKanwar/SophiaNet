@@ -45,7 +45,7 @@ export default function ResearchStudio() {
   };
 
   return (
-    <section className="mx-auto w-full max-w-6xl px-4 pb-12 pt-40 sm:px-6">
+    <section className="w-full min-w-0 px-4 pb-12 pt-40 sm:px-6">
       <ToolsHeading firstPart="Research Paper" secondPart="Studio" />
       <p className="mt-3 max-w-2xl text-sm leading-6 text-neutral-400">A clearer starting point for your next discovery. Let AI shape your search, find scholarly sources, and select papers for your question.</p>
       <form onSubmit={search} className="mt-7 rounded-2xl border border-indigo-400/25 bg-gradient-to-br from-indigo-500/10 to-white/[0.02] p-4 sm:p-6">
@@ -84,7 +84,7 @@ export default function ResearchStudio() {
         {results.search_query && <div className="mb-5 rounded-xl border border-indigo-400/20 bg-indigo-400/5 p-4"><p className="text-xs font-medium uppercase tracking-wider text-indigo-300">AI search brief</p><p className="mt-2 text-sm text-neutral-200">{results.focus}</p><p className="mt-2 text-xs text-neutral-400">Search phrase: {results.search_query}</p></div>}
         {results.warnings.map(warning => <p role="alert" key={warning} className="mb-4 rounded-lg border border-amber-400/30 bg-amber-400/5 p-3 text-sm text-amber-200">{warning}</p>)}
         {!results.papers.length && <div role="status" className="rounded-xl border border-white/10 p-10 text-center text-sm text-neutral-400">No matching papers found. Try broader terms or an earlier year.</div>}
-        <div className="space-y-4">{results.papers.map((paper, index) => <article key={paper.url} style={{ animationDelay: `${Math.min(index, 9) * 65}ms` }} className="research-paper-enter min-w-0 rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.055] to-indigo-500/[0.025] p-4 shadow-sm transition hover:border-indigo-400/40 sm:p-6">
+        <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">{results.papers.map((paper, index) => <article key={paper.url} style={{ animationDelay: `${Math.min(index, 9) * 65}ms` }} className="research-paper-enter min-w-0 rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.055] to-indigo-500/[0.025] p-4 shadow-sm transition hover:border-indigo-400/40 sm:p-6">
           <div className="flex items-start gap-3 sm:gap-4">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-400/10 font-mono text-xs text-indigo-300">{String(paper.rank).padStart(2,'0')}</span>
             <div className="min-w-0 flex-1">
