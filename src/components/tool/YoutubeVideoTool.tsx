@@ -92,30 +92,32 @@ export default function YoutubeVideoTool() {
   };
 
   return (
-    <section className="mx-auto flex w-full max-w-5xl flex-col items-center gap-5 px-4 pb-12 pt-40 sm:px-6">
+    <section className="mx-auto flex min-h-dvh w-full max-w-5xl flex-col items-center justify-center px-4 py-40 sm:px-6">
       <ToolsHeading firstPart="YouTube Video" secondPart="Tool" />
-
-      <div className="mt-4">
-        <Youtube className="w-20 h-20 text-red-400" />
-      </div>
 
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-2xl mt-4 bg-white/5 border-4 border-white/10 rounded-2xl p-4 md:p-6 backdrop-blur"
+        className="surface-enter w-full max-w-2xl rounded-3xl border border-white/15 bg-gradient-to-br from-red-500/[0.06] via-white/[0.04] to-indigo-500/[0.04] p-5 shadow-2xl sm:p-8"
       >
+        <div className="mb-7 text-center">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-red-400/20 bg-red-400/10"><Youtube className="h-7 w-7 text-red-400" /></div>
+          <h2 className="text-xl font-semibold tracking-tight">From video to understanding</h2>
+          <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-neutral-400">Paste a YouTube link to explore its transcript and get a focused summary.</p>
+        </div>
         <div className="flex flex-col gap-3">
           <div className="flex-1">
-            <label className="block text-xs text-neutral-400 mb-1">
+            <label htmlFor="youtube-url" className="block text-xs text-neutral-400 mb-2">
               Video URL
             </label>
             <input
+              id="youtube-url"
               value={value}
               onChange={(e) => {
                 setValue(e.target.value);
                 setError(null);
               }}
               placeholder="https://www.youtube.com/watch?v=VIDEO_ID or https://youtu.be/VIDEO_ID"
-              className="w-full rounded-lg bg-black/30 border border-white/10 text-neutral-200 px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500/40 placeholder:text-neutral-500"
+              className="w-full rounded-lg bg-black/30 border border-white/10 text-neutral-200 px-4 py-3.5 outline-none focus:ring-2 focus:ring-indigo-500/40 placeholder:text-neutral-500"
             />
             <div className="text-[11px] text-neutral-500 mt-1">
               Paste a full YouTube video URL.
@@ -123,9 +125,9 @@ export default function YoutubeVideoTool() {
           </div>
         </div>
 
-        {error && <div className="mt-3 text-xs text-red-400">{error}</div>}
+        {error && <div role="alert" className="mt-3 text-xs text-red-400">{error}</div>}
 
-        <div className="mt-4 flex justify-end">
+        <div className="mt-6 flex justify-end">
           <button
             type="submit"
             disabled={loading || !value.trim()}
@@ -136,7 +138,7 @@ export default function YoutubeVideoTool() {
             }`}
             aria-busy={loading}
           >
-            {loading ? "Processing..." : "Proceed"}
+            {loading ? "Processing…" : "Explore video"}
           </button>
         </div>
       </form>

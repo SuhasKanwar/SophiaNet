@@ -53,25 +53,7 @@ export default function DiagramsTool() {
         {code && <button type="button" disabled={loading} onClick={() => { setCode(""); setPreview(""); setError(null); }} className="rounded-lg border border-white/20 px-4 py-2 text-sm hover:bg-white/10 disabled:opacity-50">New diagram</button>}
       </header>
 
-      <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(260px,340px)]">
-        <div className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-slate-950/60">
-          {preview ? <MermaidChart code={preview} /> : (
-            <div className="flex min-h-[420px] flex-col items-center justify-center gap-5 p-6 text-center">
-              <Network size={44} className="text-indigo-400" />
-              <div><h2 className="text-lg font-medium">Start with an idea</h2><p className="mt-2 max-w-sm text-sm text-neutral-400">Describe a process, relationship, or system. Try one of these examples.</p></div>
-              <div className="flex flex-col gap-2">{examples.map(example => <button type="button" key={example} disabled={loading} onClick={() => setInput(example)} className="rounded-xl border border-indigo-400/20 bg-indigo-400/5 px-4 py-2 text-sm text-indigo-200 hover:bg-indigo-400/15">{example}</button>)}</div>
-            </div>
-          )}
-        </div>
-        <div className="flex min-w-0 flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-          <label htmlFor="diagram-code" className="text-sm font-medium">Mermaid code</label>
-          <textarea id="diagram-code" value={code} disabled={loading} maxLength={100000} onChange={event => setCode(event.target.value)} spellCheck={false} placeholder={'flowchart TD\n  A[Start] --> B[Finish]'} className="min-h-64 flex-1 resize-y rounded-lg border border-white/10 bg-black/30 p-3 font-mono text-xs leading-6 text-neutral-200 outline-none focus:border-indigo-400" />
-          <button type="button" disabled={!code.trim() || loading} onClick={() => setPreview(code)} className="rounded-lg border border-indigo-400/40 bg-indigo-500/10 px-4 py-2 text-sm text-indigo-200 hover:bg-indigo-500/20 disabled:opacity-40">Update preview</button>
-          <p className="text-xs text-neutral-500">Your edits are included when you ask for a refinement.</p>
-        </div>
-      </div>
-
-      <form onSubmit={handleSend} className="rounded-2xl border border-indigo-400/30 bg-white/[0.03] p-4">
+      <form onSubmit={handleSend} className="surface-enter rounded-2xl border border-indigo-400/25 bg-gradient-to-br from-indigo-500/10 to-white/[0.02] p-4 sm:p-5">
         <label htmlFor="diagram-description" className="mb-2 block text-sm font-medium">{code ? "Describe your changes" : "Describe your diagram"}</label>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
           <textarea id="diagram-description" value={input} onChange={event => setInput(event.target.value)} disabled={loading} maxLength={4000} rows={2} placeholder="For example, show how a library loan works, from finding a book to returning it…" className="min-w-0 flex-1 resize-y rounded-lg border border-white/10 bg-black/30 p-3 text-sm outline-none focus:border-indigo-400" />
@@ -80,6 +62,26 @@ export default function DiagramsTool() {
         {loading && <p role="status" className="mt-3 text-sm text-indigo-300">Creating your diagram. This may take a moment.</p>}
         {error && <p role="alert" className="mt-3 text-sm text-red-300">{error}</p>}
       </form>
+
+      <div className="surface-enter grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(280px,340px)]">
+        <div className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-slate-950/60">
+          {preview ? <MermaidChart code={preview} /> : (
+            <div className="flex min-h-[420px] flex-col items-center justify-center gap-5 p-6 text-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-indigo-400/20 bg-indigo-400/10"><Network size={30} className="text-indigo-300" /></div>
+              <div><h2 className="text-lg font-medium">Your ideas, connected</h2><p className="mt-2 max-w-sm text-sm text-neutral-400">Describe a process, relationship, or system above, or start with an example below.</p></div>
+              <div className="flex w-full max-w-md flex-col gap-2">{examples.map(example => <button type="button" key={example} disabled={loading} onClick={() => setInput(example)} className="rounded-xl border border-indigo-400/20 bg-indigo-400/5 px-4 py-2 text-sm text-indigo-200 hover:bg-indigo-400/15">{example}</button>)}</div>
+            </div>
+          )}
+        </div>
+        <div className="flex min-w-0 flex-col gap-3 rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.05] to-white/[0.02] p-4">
+          <div className="flex items-center justify-between border-b border-white/10 pb-3"><label htmlFor="diagram-code" className="text-sm font-medium">Mermaid code</label><span className="rounded-md bg-white/5 px-2 py-1 font-mono text-[10px] text-neutral-500">Editable</span></div>
+          <textarea id="diagram-code" value={code} disabled={loading} maxLength={100000} onChange={event => setCode(event.target.value)} spellCheck={false} placeholder={'flowchart TD\n  A[Start] --> B[Finish]'} className="min-h-64 flex-1 resize-y rounded-lg border border-white/10 bg-black/30 p-3 font-mono text-xs leading-6 text-neutral-200 outline-none focus:border-indigo-400" />
+          <button type="button" disabled={!code.trim() || loading} onClick={() => setPreview(code)} className="rounded-lg border border-indigo-400/40 bg-indigo-500/10 px-4 py-2 text-sm text-indigo-200 hover:bg-indigo-500/20 disabled:opacity-40">Update preview</button>
+          <p className="text-xs text-neutral-500">Your edits are included when you ask for a refinement.</p>
+        </div>
+      </div>
+
+
     </section>
   );
 }
