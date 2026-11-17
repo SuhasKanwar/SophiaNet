@@ -1,10 +1,12 @@
 type DottedPatternProps = {
+  className?: string;
   spacing?: number;
   dotSize?: number;
   opacity?: number;
 };
 
 export default function DottedPattern({
+  className = "fixed inset-0 -z-10 pointer-events-none",
   spacing = 24,
   dotSize = 1.5,
   opacity = 0.2,
@@ -14,7 +16,7 @@ export default function DottedPattern({
   return (
     <div
       aria-hidden="true"
-      className="fixed inset-0 -z-10 pointer-events-none"
+      className={className}
       style={{
         backgroundImage: `radial-gradient(${color} ${dotSize}px, transparent ${dotSize}px)`,
         backgroundSize: `${spacing}px ${spacing}px`,

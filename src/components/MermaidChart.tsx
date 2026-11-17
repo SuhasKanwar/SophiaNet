@@ -5,7 +5,7 @@ import mermaid from "mermaid";
 
 mermaid.initialize({ startOnLoad: false, theme: "dark", securityLevel: "strict", suppressErrorRendering: true });
 
-export default function MermaidChart({ code, className = "flex h-[480px] flex-col sm:h-[560px]" }: { code: string; className?: string }) {
+export default function MermaidChart({ code, showGrid = true, className = "flex h-[480px] flex-col sm:h-[560px]" }: { code: string; className?: string; showGrid?: boolean }) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const drag = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
@@ -48,7 +48,7 @@ export default function MermaidChart({ code, className = "flex h-[480px] flex-co
       }
       fit();
     }).catch(() => {
-      if (!cancelled) setError("This code could not be rendered. Correct the Mermaid syntax to update the live preview.");
+      if (!cancelled) setError("This code could not be rendered. Ask for a correction in the chat input to regenerate the diagram.");
     }).finally(() => {
       if (!cancelled) setRendering(false);
     });
@@ -97,7 +97,7 @@ export default function MermaidChart({ code, className = "flex h-[480px] flex-co
           <button type="button" onClick={fit} className="rounded border border-white/20 px-3 py-1 text-sm hover:bg-white/10">Fit</button>
         </div>
       </div>
-      <div ref={viewportRef} className="relative min-h-0 flex-1 touch-none overflow-hidden cursor-grab active:cursor-grabbing" style={{ backgroundImage: "radial-gradient(#334155 1px, transparent 1px)", backgroundSize: "22px 22px" }}
+      <div ref={viewportRef} className="relative min-h-0 flex-1 touch-none overflow-hidden cursor-grab active:cursor-grabbing" style={showGrid ? { backgroundImage: "radial-gradient(#334155 1px, transparent 1px)", backgroundSize: "22px 22px" } : undefined}
         onPointerDown={event => {
           if (event.button !== 0) return;
           drag.current = { x: event.clientX, y: event.clientY, panX: pan.x, panY: pan.y };
@@ -108,7 +108,7 @@ export default function MermaidChart({ code, className = "flex h-[480px] flex-co
         }}
         onPointerUp={stopDrag} onPointerCancel={stopDrag} onLostPointerCapture={() => { drag.current = null; }}>
         <div ref={containerRef} className="absolute left-0 top-0 origin-top-left" style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})` }} />
-        {!code.trim() && <p className="absolute inset-x-4 top-1/2 text-center text-sm text-neutral-500">Write Mermaid code or describe a diagram below.</p>}
+        {!code.trim() && <p className="absolute inset-x-4 top-1/2 text-center text-sm text-neutral-500">Describe a diagram in the chat input to get started.</p>}
         {rendering && <p role="status" className="absolute inset-x-4 top-4 rounded-lg bg-slate-950 p-3 text-sm text-neutral-300">Rendering preview…</p>}
         {error && <p role="alert" className="absolute inset-x-4 top-4 rounded-lg bg-slate-950 p-3 text-sm text-red-300">{error}</p>}
       </div>
