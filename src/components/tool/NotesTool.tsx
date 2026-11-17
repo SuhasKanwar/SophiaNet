@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { FileUpload } from "../ui/file-upload";
-import ToolsHeading from "./ToolsHeading";
+
 import axios from "axios";
 import { useToast } from "@/providers/ToastProvider";
 
@@ -66,8 +66,8 @@ export default function NotesTool() {
 	};
 
 	return (
-		<section className="mx-auto flex w-full max-w-5xl flex-col items-center gap-5 px-4 pb-12 pt-40 sm:px-6">
-			<ToolsHeading firstPart="Notes" secondPart="Tool (OCR)" />
+		<section className="flex flex-col w-full px-3 pt-4 items-center min-h-full mt-[var(--navbar-height,64px)]">
+			<h1 className="absolute z-10 top-24 transition-[margin] duration-300 left-[calc(var(--sidebar-width)+1rem)] text-white text-2xl font-bold mb-6">Notes <span className="text-indigo-400">Tool (OCR)</span></h1>
 			<FileUpload onChange={handleFileUpload}>
 				<>
 					<button

@@ -16,7 +16,7 @@ export async function POST(request: Request) {
   try {
     const response = await fetch(`${MICROSERVICE_BASE_URL}/search-papers`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(parsed.data),
-      signal: AbortSignal.any([request.signal, AbortSignal.timeout(35000)]), cache: 'no-store',
+      signal: AbortSignal.any([request.signal, AbortSignal.timeout(240000)]), cache: 'no-store',
     });
     if (!response.ok) return Response.json({ message: 'Scholarly search is unavailable. Please retry.' }, { status: 502 });
     return Response.json(await response.json());
