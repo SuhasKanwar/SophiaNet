@@ -60,16 +60,15 @@ export default function DiagramsTool() {
   };
 
   return (
-    <section className="flex min-h-dvh min-w-0 flex-col px-3 pb-32 pt-36 sm:px-4">
+    <section className="flex h-dvh min-h-0 min-w-0 flex-col overflow-hidden px-3 pb-32 pt-36 sm:px-4">
       <DottedPattern className="pointer-events-none fixed bottom-0 right-0 top-[var(--nav-height,64px)] left-[var(--sidebar-width,60px)] z-0 transition-[left] duration-300" />
       <header className="absolute left-[calc(var(--sidebar-width,60px)+1rem)] right-4 top-24 z-10 flex items-center justify-between gap-3 transition-[left] duration-300">
         <h1 className="text-2xl font-bold text-white">Diagrams <span className="text-indigo-400">Tool</span></h1>
         <button type="button" onClick={exportDiagram} disabled={!svg || loading} className="shrink-0 rounded-lg border border-white/15 px-3 py-2 text-xs text-neutral-300 hover:bg-white/5 disabled:opacity-30">Export SVG</button>
       </header>
-      <div className="relative z-[1] min-w-0 flex-1">
-        <MermaidChart code={code} className="flex h-[calc(100dvh-280px)] min-h-72 flex-col" onRender={setSvg} />
-        {loading && <p role="status" className="mt-3 text-center text-sm text-indigo-300">Creating your diagram…</p>}
-        {error && <p role="alert" className="mt-3 text-center text-sm text-red-300">{error}</p>}
+      <div className="relative z-[1] min-h-0 min-w-0 flex-1">
+        <MermaidChart code={code} className="flex h-full min-h-0 flex-col" onRender={setSvg} />
+        {error && <p role="alert" className="absolute inset-x-2 bottom-0 rounded-lg bg-black/70 p-2 text-center text-sm text-red-300">{error}</p>}
       </div>
       <ChatInputComponent input={input} setInput={setInput} onSend={handleSend} loading={loading}
         enableCommands onFilesChange={setFiles} onError={setError}

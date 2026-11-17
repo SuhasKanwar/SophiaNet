@@ -12,7 +12,6 @@ export default function MermaidChart({ code, onRender, className = "flex h-[480p
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [error, setError] = useState("");
-  const [rendering, setRendering] = useState(false);
 
   const fit = useCallback(() => {
     const viewport = viewportRef.current;
@@ -32,9 +31,8 @@ export default function MermaidChart({ code, onRender, className = "flex h-[480p
     container.innerHTML = "";
     onRender(null);
     setError("");
-    setRendering(true);
     const id = `diagram-${crypto.randomUUID()}`;
-    if (!code.trim()) { setRendering(false); return; }
+    if (!code.trim()) return;
     mermaid.render(id, code).then(({ svg }) => {
       if (cancelled) return;
       container.innerHTML = svg;
@@ -51,8 +49,6 @@ export default function MermaidChart({ code, onRender, className = "flex h-[480p
       fit();
     }).catch(() => {
       if (!cancelled) setError("This code could not be rendered. Ask for a correction in the chat input to regenerate the diagram.");
-    }).finally(() => {
-      if (!cancelled) setRendering(false);
     });
     return () => { cancelled = true; };
   }, [code, fit, onRender]);
@@ -63,6 +59,23 @@ export default function MermaidChart({ code, onRender, className = "flex h-[480p
     observer.observe(viewportRef.current);
     return () => observer.disconnect();
   }, [fit]);
+
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+    const wheel = (event: WheelEvent) => {
+      event.preventDefault();
+      const nextZoom = Math.max(0.05, Math.min(4, zoom * Math.exp(-Math.max(-100, Math.min(100, event.deltaY)) * 0.002)));
+      const rect = viewport.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+      const ratio = nextZoom / zoom;
+      setPan({ x: x - (x - pan.x) * ratio, y: y - (y - pan.y) * ratio });
+      setZoom(nextZoom);
+    };
+    viewport.addEventListener("wheel", wheel, { passive: false });
+    return () => viewport.removeEventListener("wheel", wheel);
+  }, [zoom, pan]);
 
   const stopDrag = (event: React.PointerEvent<HTMLDivElement>) => {
     drag.current = null;
@@ -82,7 +95,6 @@ export default function MermaidChart({ code, onRender, className = "flex h-[480p
         }}
         onPointerUp={stopDrag} onPointerCancel={stopDrag} onLostPointerCapture={() => { drag.current = null; }}>
         <div ref={containerRef} className="absolute left-0 top-0 origin-top-left" style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})` }} />
-        {rendering && <p role="status" className="absolute inset-x-4 top-4 rounded-lg bg-slate-950 p-3 text-sm text-neutral-300">Rendering preview…</p>}
         {error && <p role="alert" className="absolute inset-x-4 top-4 rounded-lg bg-slate-950 p-3 text-sm text-red-300">{error}</p>}
       </div>
     </div>
