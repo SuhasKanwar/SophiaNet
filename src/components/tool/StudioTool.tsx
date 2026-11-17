@@ -1,5 +1,7 @@
 "use client";
 
+import ToolsHeading from "./ToolsHeading";
+
 import { useEffect, useRef, useState } from "react";
 
 interface Quiz {
@@ -42,7 +44,7 @@ export default function StudioTool() {
 
   return (
     <section className="mx-auto w-full max-w-5xl px-4 pb-12 pt-24">
-      <h1 className="text-2xl font-semibold">Learning & writing studio</h1>
+      <ToolsHeading firstPart="Learning & Writing" secondPart="Studio" />
       <p className="mt-2 text-sm text-neutral-400">Practice a topic or turn an idea into a reviewed script.</p>
       <form onSubmit={generate} className="mt-6 space-y-4 rounded-2xl border border-indigo-400/20 bg-white/5 p-5">
         <label className="block text-sm">Create

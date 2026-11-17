@@ -92,7 +92,7 @@ export default function YoutubeVideoTool() {
   };
 
   return (
-    <section className="flex flex-col w-full px-3 pt-4 items-center justify-center min-h-[calc(100vh-var(--navbar-height,64px))]">
+    <section className="mx-auto flex w-full max-w-5xl flex-col items-center gap-5 px-4 pb-12 pt-24 sm:px-6">
       <ToolsHeading firstPart="YouTube Video" secondPart="Tool" />
 
       <div className="mt-4">

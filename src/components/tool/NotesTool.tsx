@@ -66,7 +66,7 @@ export default function NotesTool() {
 	};
 
 	return (
-		<section className="flex flex-col w-full px-3 pt-4 items-center min-h-full mt-[var(--navbar-height,64px)]">
+		<section className="mx-auto flex w-full max-w-5xl flex-col items-center gap-5 px-4 pb-12 pt-24 sm:px-6">
 			<ToolsHeading firstPart="Notes" secondPart="Tool (OCR)" />
 			<FileUpload onChange={handleFileUpload}>
 				<>
