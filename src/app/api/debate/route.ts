@@ -4,7 +4,7 @@ import { authOptions } from "../auth/[...nextauth]/options";
 import { prisma } from "@/lib/prisma";
 import { MICROSERVICE_BASE_URL } from "@/lib/config";
 
-const input = z.object({ conversationId: z.string().min(1), content: z.string().trim().min(1).max(4000) });
+const input = z.object({ conversationId: z.string().min(1), content: z.string().trim().min(1).max(4000), command: z.literal("agent-battleground").optional() });
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
@@ -17,7 +17,7 @@ export async function POST(request: Request) {
   const history = await prisma.chat.findMany({ where: { conversationId, type: 'text' }, orderBy: { createdAt: 'desc' }, take: 20 });
   const upstream = await fetch(`${MICROSERVICE_BASE_URL}/generate-debate`, {
     method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt: content, session_history: history.reverse().map(m => ({ role: m.sender === 'user' ? 'user' : 'assistant', content: m.content || "" })) }),
+    body: JSON.stringify({ prompt: content, command: "agent-battleground", session_history: history.reverse().map(m => ({ role: m.sender === 'user' ? 'user' : 'assistant', content: m.content || "" })) }),
     signal: AbortSignal.any([request.signal, AbortSignal.timeout(310000)]),
   }).catch(() => null);
   if (!upstream?.ok || !upstream.body) return Response.json({ message: "Debate service unavailable" }, { status: 502 });

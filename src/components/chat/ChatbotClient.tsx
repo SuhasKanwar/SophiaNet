@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState, useCallback } from "react";
+import { parseChatCommand } from "@/lib/chat-command";
 import { Bot } from "lucide-react";
 import axios from "axios";
 import { useToast } from "@/providers/ToastProvider";
@@ -128,6 +129,14 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
 
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
+    let parsed;
+    try {
+      parsed = conversationVariant === "chat" ? parseChatCommand(input) : { content: input, command: null };
+      if (parsed.command && selectedFiles.length) throw new Error("Remove attachments before using agent battleground.");
+    } catch (error) { setError(error instanceof Error ? error.message : "Invalid command"); return; }
+    const isDebate = parsed.command === "agent-battleground";
+    setDebateMode(isDebate);
+    setPanel({});
     setLoading(true);
     setError(null);
 
@@ -138,7 +147,8 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
       createdAt: m.createdAt,
     }));
 
-    const content = input;
+    const originalInput = input;
+    const content = parsed.content;
     const attachments = selectedFiles.map((f) => f.name);
     const optimistic: ChatMessage = {
       id: "temp-" + Date.now(),
@@ -151,7 +161,7 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
     setMessages((p) => [...p, optimistic]);
 
     try {
-      if (debateMode && conversationVariant === "chat") {
+      if (isDebate && conversationVariant === "chat") {
         if (selectedFiles.length) throw new Error("Use standard chat for attachments.");
         setPanel({});
         setActiveAgent("advocate");
@@ -159,7 +169,7 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
         abortDebate.current = controller;
         const response = await fetch("/api/debate", {
           method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ conversationId: chatID, content }), signal: controller.signal,
+          body: JSON.stringify({ conversationId: chatID, content, command: parsed.command }), signal: controller.signal,
         });
         if (!response.ok || !response.body) throw new Error("Debate unavailable. Please retry.");
         const reader = response.body.getReader();
@@ -235,7 +245,7 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
       });
     } catch (e: any) {
       setMessages((prev) => prev.filter((m) => m.id !== optimistic.id));
-      setInput(content);
+      setInput(originalInput);
       setError(
         e?.response?.data?.message || e.message || "Failed to send message"
       );
@@ -327,15 +337,6 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
         </div>
       )}
 
-      {conversationVariant === "chat" && (
-        <div className="mb-5 w-full max-w-6xl rounded-xl border border-indigo-400/20 bg-indigo-500/5 p-3">
-          <label className="flex items-center gap-3 text-sm font-medium">
-            <input type="checkbox" checked={debateMode} disabled={loading} onChange={event => { setDebateMode(event.target.checked); setPanel({}); }} />
-            Agent battleground
-          </label>
-          <p className="mt-1 text-xs text-neutral-400">Advocate → Critic → Judge. Evidence review takes longer and uses more model calls. Text only.</p>
-        </div>
-      )}
       <div className="w-full max-w-6xl h-full flex flex-col mx-auto pb-[100px]">
         <div
           ref={chatContainerRef}
@@ -453,7 +454,8 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
         onSend={sendMessage}
         loading={loading}
         onError={setError}
-        showFileUpload={!debateMode}
+        enableCommands={conversationVariant === "chat"}
+        placeholder={conversationVariant === "chat" ? "Message, or type / for commands…" : "Message…"}
         onFilesChange={setSelectedFiles}
         bottomText={`Conversation ID: ${chatID}`}
       />
