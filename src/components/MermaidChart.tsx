@@ -5,7 +5,7 @@ import mermaid from "mermaid";
 
 mermaid.initialize({ startOnLoad: false, theme: "dark", securityLevel: "strict", suppressErrorRendering: true });
 
-export default function MermaidChart({ code, showGrid = true, className = "flex h-[480px] flex-col sm:h-[560px]" }: { code: string; className?: string; showGrid?: boolean }) {
+export default function MermaidChart({ code, onRender, className = "flex h-[480px] flex-col sm:h-[560px]" }: { code: string; className?: string; onRender: (svg: string | null) => void }) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const drag = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
@@ -30,6 +30,7 @@ export default function MermaidChart({ code, showGrid = true, className = "flex 
     const container = containerRef.current;
     if (!container) return;
     container.innerHTML = "";
+    onRender(null);
     setError("");
     setRendering(true);
     const id = `diagram-${crypto.randomUUID()}`;
@@ -46,6 +47,7 @@ export default function MermaidChart({ code, showGrid = true, className = "flex 
         element.setAttribute("role", "img");
         element.setAttribute("aria-label", "Generated diagram");
       }
+      onRender(new XMLSerializer().serializeToString(container.querySelector("svg")!));
       fit();
     }).catch(() => {
       if (!cancelled) setError("This code could not be rendered. Ask for a correction in the chat input to regenerate the diagram.");
@@ -53,7 +55,7 @@ export default function MermaidChart({ code, showGrid = true, className = "flex 
       if (!cancelled) setRendering(false);
     });
     return () => { cancelled = true; };
-  }, [code, fit]);
+  }, [code, fit, onRender]);
 
   useEffect(() => {
     if (!viewportRef.current) return;
@@ -62,42 +64,14 @@ export default function MermaidChart({ code, showGrid = true, className = "flex 
     return () => observer.disconnect();
   }, [fit]);
 
-  const changeZoom = (factor: number) => {
-    const viewport = viewportRef.current;
-    if (!viewport) return;
-    const next = Math.max(0.05, Math.min(4, zoom * factor));
-    const ratio = next / zoom;
-    setPan(current => ({
-      x: viewport.clientWidth / 2 - (viewport.clientWidth / 2 - current.x) * ratio,
-      y: viewport.clientHeight / 2 - (viewport.clientHeight / 2 - current.y) * ratio,
-    }));
-    setZoom(next);
-  };
-
   const stopDrag = (event: React.PointerEvent<HTMLDivElement>) => {
     drag.current = null;
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
   };
 
-  const downloadSvg = () => {
-    const svg = containerRef.current?.querySelector("svg");
-    if (!svg || error || rendering) return;
-    const url = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(svg)], { type: "image/svg+xml;charset=utf-8" }));
-    const link = document.createElement("a"); link.href = url; link.download = "sophianet-diagram.svg"; link.click(); URL.revokeObjectURL(url);
-  };
-
   return (
     <div className={className}>
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 px-4 py-3">
-        <button type="button" onClick={downloadSvg} disabled={!code.trim() || !!error || rendering} className="rounded border border-white/15 px-2.5 py-1 text-xs text-neutral-300 hover:bg-white/5 disabled:opacity-30">Export SVG</button>
-        <div className="flex items-center gap-2">
-          <button type="button" aria-label="Zoom out" onClick={() => changeZoom(1 / 1.2)} className="rounded border border-white/20 px-3 py-1 hover:bg-white/10">−</button>
-          <output className="w-12 text-center text-xs text-neutral-400" aria-label="Zoom level">{Math.round(zoom * 100)}%</output>
-          <button type="button" aria-label="Zoom in" onClick={() => changeZoom(1.2)} className="rounded border border-white/20 px-3 py-1 hover:bg-white/10">+</button>
-          <button type="button" onClick={fit} className="rounded border border-white/20 px-3 py-1 text-sm hover:bg-white/10">Fit</button>
-        </div>
-      </div>
-      <div ref={viewportRef} className="relative min-h-0 flex-1 touch-none overflow-hidden cursor-grab active:cursor-grabbing" style={showGrid ? { backgroundImage: "radial-gradient(#334155 1px, transparent 1px)", backgroundSize: "22px 22px" } : undefined}
+      <div ref={viewportRef} className="relative min-h-0 flex-1 touch-none overflow-hidden cursor-grab active:cursor-grabbing"
         onPointerDown={event => {
           if (event.button !== 0) return;
           drag.current = { x: event.clientX, y: event.clientY, panX: pan.x, panY: pan.y };
@@ -108,11 +82,9 @@ export default function MermaidChart({ code, showGrid = true, className = "flex 
         }}
         onPointerUp={stopDrag} onPointerCancel={stopDrag} onLostPointerCapture={() => { drag.current = null; }}>
         <div ref={containerRef} className="absolute left-0 top-0 origin-top-left" style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})` }} />
-        {!code.trim() && <p className="absolute inset-x-4 top-1/2 text-center text-sm text-neutral-500">Describe a diagram in the chat input to get started.</p>}
         {rendering && <p role="status" className="absolute inset-x-4 top-4 rounded-lg bg-slate-950 p-3 text-sm text-neutral-300">Rendering preview…</p>}
         {error && <p role="alert" className="absolute inset-x-4 top-4 rounded-lg bg-slate-950 p-3 text-sm text-red-300">{error}</p>}
       </div>
-      <p className="border-t border-white/10 px-4 py-2 text-xs text-neutral-500">Drag to pan. Use + / − to zoom, or Fit to center the diagram.</p>
     </div>
   );
 }
