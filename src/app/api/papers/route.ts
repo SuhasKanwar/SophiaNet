@@ -18,7 +18,11 @@ export async function POST(request: Request) {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(parsed.data),
       signal: AbortSignal.any([request.signal, AbortSignal.timeout(240000)]), cache: 'no-store',
     });
-    if (!response.ok) return Response.json({ message: 'Scholarly search is unavailable. Please retry.' }, { status: 502 });
+    if (!response.ok) {
+      const error = await response.json().catch(() => null);
+      const message = typeof error?.message === 'string' ? error.message : 'Research search could not complete. Please retry.';
+      return Response.json({ message }, { status: response.status === 503 ? 503 : 502 });
+    }
     return Response.json(await response.json());
   } catch {
     return Response.json({ message: 'Search timed out or is unavailable. Please retry.' }, { status: 502 });
