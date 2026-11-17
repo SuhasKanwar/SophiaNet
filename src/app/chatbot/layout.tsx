@@ -1,10 +1,10 @@
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
-import { Notebook, YoutubeIcon } from "lucide-react";
+import { FileSearch, GraduationCap, Notebook, Workflow, YoutubeIcon } from "lucide-react";
 
 const sidebarLinks = [
-	{ name: "Research Papers", icon: <Notebook />, link: "/chatbot/t/research-studio" },
-	{ name: "Learning Studio", icon: <Notebook />, link: "/chatbot/t/studio" },
+	{ name: "Research Papers", icon: <FileSearch />, link: "/chatbot/t/research-studio" },
+	{ name: "Learning Studio", icon: <GraduationCap />, link: "/chatbot/t/studio" },
 	{
 		name: "Notes Tool",
 		icon: <Notebook />,
@@ -17,7 +17,7 @@ const sidebarLinks = [
 	},
 	{
 		name: "Diagrams Tool",
-		icon: <Notebook />,
+		icon: <Workflow />,
 		link: "/chatbot/t/diagrams-tool",
 	}
 	// {
