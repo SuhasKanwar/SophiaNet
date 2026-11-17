@@ -2,23 +2,29 @@
 
 import ToolsHeading from "./ToolsHeading";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
-import { Loader2, Network, Send } from "lucide-react";
+import { Loader2, Send, RotateCcw } from "lucide-react";
 import MermaidChart from "@/components/MermaidChart";
 
-const examples = [
-  "A flowchart of the water cycle",
-  "A sequence diagram of a user signing in",
-  "A mind map of renewable energy sources",
-];
+const samples = {
+  Flowchart: 'flowchart TD\n    A[Start] --> B{Decision}\n    B -->|Yes| C[Continue]\n    B -->|No| D[Review]\n    D --> B',
+  Sequence: 'sequenceDiagram\n    participant User\n    participant Service\n    User->>Service: Send request\n    Service-->>User: Return response',
+  Mindmap: 'mindmap\n  root((Project))\n    Research\n    Design\n    Build\n    Review',
+};
 
 export default function DiagramsTool() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [code, setCode] = useState("");
-  const [preview, setPreview] = useState("");
+  const [code, setCode] = useState(samples.Flowchart);
+  const [preview, setPreview] = useState(samples.Flowchart);
+  const [mobilePanel, setMobilePanel] = useState<"code" | "preview">("preview");
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setPreview(code), 450);
+    return () => clearTimeout(timer);
+  }, [code]);
 
   const handleSend = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -34,6 +40,7 @@ export default function DiagramsTool() {
       setCode(nextCode);
       setPreview(nextCode);
       setInput("");
+      setMobilePanel("preview");
     } catch (error: unknown) {
       setError(axios.isAxiosError(error)
         ? error.response?.data?.message || "Diagram generation failed. Please try again."
@@ -43,45 +50,41 @@ export default function DiagramsTool() {
     }
   };
 
+
   return (
-    <section className="mx-auto flex w-full max-w-7xl min-w-0 flex-col gap-5 px-4 pb-6 pt-40 sm:px-6">
-      <header className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <ToolsHeading firstPart="Diagrams" secondPart="Tool" />
-          <p className="mt-2 text-sm text-neutral-400">Turn an idea into a diagram. Edit the code or describe what to change.</p>
+    <section className="flex min-w-0 flex-col px-3 pb-4 pt-36 sm:px-4">
+      <ToolsHeading firstPart="Diagrams" secondPart="Tool" />
+      <div className="overflow-hidden rounded-xl border border-white/15 bg-[#101118] shadow-xl">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-4 py-3">
+          <div className="flex items-center gap-3"><span className="text-sm font-semibold">Live editor</span><span className="hidden text-xs text-neutral-500 sm:inline">Mermaid · changes preview automatically</span></div>
+          <div className="flex items-center gap-3">
+            <a href="https://mermaid.js.org/intro/syntax-reference.html" target="_blank" rel="noopener noreferrer" className="text-xs text-neutral-400 hover:text-white">Syntax guide ↗</a>
+            <button type="button" disabled={loading} onClick={() => { setCode(''); setError(null); }} className="inline-flex items-center gap-1.5 rounded-md border border-white/15 px-2.5 py-1.5 text-xs hover:bg-white/5 disabled:opacity-40"><RotateCcw size={13} />Clear</button>
+          </div>
         </div>
-        {code && <button type="button" disabled={loading} onClick={() => { setCode(""); setPreview(""); setError(null); }} className="rounded-lg border border-white/20 px-4 py-2 text-sm hover:bg-white/10 disabled:opacity-50">New diagram</button>}
-      </header>
-
-      <form onSubmit={handleSend} className="surface-enter rounded-2xl border border-indigo-400/25 bg-gradient-to-br from-indigo-500/10 to-white/[0.02] p-4 sm:p-5">
-        <label htmlFor="diagram-description" className="mb-2 block text-sm font-medium">{code ? "Describe your changes" : "Describe your diagram"}</label>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-          <textarea id="diagram-description" value={input} onChange={event => setInput(event.target.value)} disabled={loading} maxLength={4000} rows={2} placeholder="For example, show how a library loan works, from finding a book to returning it…" className="min-w-0 flex-1 resize-y rounded-lg border border-white/10 bg-black/30 p-3 text-sm outline-none focus:border-indigo-400" />
-          <button type="submit" disabled={loading || !input.trim()} className="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-indigo-500 px-5 py-3 text-sm font-medium hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-40">{loading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}{loading ? "Generating…" : code ? "Refine diagram" : "Generate diagram"}</button>
+        <div role="tablist" aria-label="Editor panels" className="flex border-b border-white/10 lg:hidden">
+          {(['code', 'preview'] as const).map(panel => <button key={panel} role="tab" aria-selected={mobilePanel === panel} aria-controls={`diagram-${panel}-panel`} id={`diagram-${panel}-tab`} onClick={() => setMobilePanel(panel)} className={`flex-1 border-b-2 px-4 py-3 text-sm capitalize ${mobilePanel === panel ? 'border-indigo-400 text-indigo-200' : 'border-transparent text-neutral-500'}`}>{panel === 'code' ? 'Edit code' : 'Preview'}</button>)}
         </div>
-        {loading && <p role="status" className="mt-3 text-sm text-indigo-300">Creating your diagram. This may take a moment.</p>}
-        {error && <p role="alert" className="mt-3 text-sm text-red-300">{error}</p>}
-      </form>
-
-      <div className="surface-enter grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(280px,340px)]">
-        <div className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-slate-950/60">
-          {preview ? <MermaidChart code={preview} /> : (
-            <div className="flex min-h-[420px] flex-col items-center justify-center gap-5 p-6 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-indigo-400/20 bg-indigo-400/10"><Network size={30} className="text-indigo-300" /></div>
-              <div><h2 className="text-lg font-medium">Your ideas, connected</h2><p className="mt-2 max-w-sm text-sm text-neutral-400">Describe a process, relationship, or system above, or start with an example below.</p></div>
-              <div className="flex w-full max-w-md flex-col gap-2">{examples.map(example => <button type="button" key={example} disabled={loading} onClick={() => setInput(example)} className="rounded-xl border border-indigo-400/20 bg-indigo-400/5 px-4 py-2 text-sm text-indigo-200 hover:bg-indigo-400/15">{example}</button>)}</div>
-            </div>
-          )}
+        <div className="grid min-w-0 lg:grid-cols-[minmax(280px,38%)_minmax(0,1fr)]">
+          <div id="diagram-code-panel" className={`${mobilePanel === 'code' ? 'flex' : 'hidden'} h-[min(65dvh,640px)] min-h-80 min-w-0 flex-col border-white/10 lg:flex lg:border-r`}>
+            <div className="flex items-center justify-between border-b border-white/10 px-4 py-3"><label htmlFor="diagram-code" className="font-mono text-xs text-neutral-300">Code</label><span className="text-[10px] text-neutral-500">Auto preview</span></div>
+            <textarea id="diagram-code" aria-label="Mermaid code" value={code} disabled={loading} maxLength={100000} onChange={event => setCode(event.target.value)} spellCheck={false} placeholder="Write Mermaid code here…" className="min-h-0 flex-1 resize-none bg-[#0c0d12] p-4 font-mono text-sm leading-7 text-indigo-100 outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-400/40" />
+            <div className="border-t border-white/10 px-4 py-3"><p className="mb-2 text-[10px] uppercase tracking-widest text-neutral-500">Sample diagrams</p><div className="flex flex-wrap gap-2">{Object.entries(samples).map(([name, sample]) => <button type="button" key={name} disabled={loading} onClick={() => setCode(sample)} className="rounded-md border border-white/10 px-2.5 py-1.5 text-xs text-neutral-300 hover:bg-white/10 disabled:opacity-40">{name}</button>)}</div></div>
+          </div>
+          <div id="diagram-preview-panel" className={`${mobilePanel === 'preview' ? 'block' : 'hidden'} h-[min(65dvh,640px)] min-h-80 min-w-0 bg-[#080b12] lg:block`}>
+            <MermaidChart code={preview} className="flex h-full flex-col" />
+          </div>
         </div>
-        <div className="flex min-w-0 flex-col gap-3 rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.05] to-white/[0.02] p-4">
-          <div className="flex items-center justify-between border-b border-white/10 pb-3"><label htmlFor="diagram-code" className="text-sm font-medium">Mermaid code</label><span className="rounded-md bg-white/5 px-2 py-1 font-mono text-[10px] text-neutral-500">Editable</span></div>
-          <textarea id="diagram-code" value={code} disabled={loading} maxLength={100000} onChange={event => setCode(event.target.value)} spellCheck={false} placeholder={'flowchart TD\n  A[Start] --> B[Finish]'} className="min-h-64 flex-1 resize-y rounded-lg border border-white/10 bg-black/30 p-3 font-mono text-xs leading-6 text-neutral-200 outline-none focus:border-indigo-400" />
-          <button type="button" disabled={!code.trim() || loading} onClick={() => setPreview(code)} className="rounded-lg border border-indigo-400/40 bg-indigo-500/10 px-4 py-2 text-sm text-indigo-200 hover:bg-indigo-500/20 disabled:opacity-40">Update preview</button>
-          <p className="text-xs text-neutral-500">Your edits are included when you ask for a refinement.</p>
-        </div>
+        <form onSubmit={handleSend} className="border-t border-white/10 bg-white/[0.025] p-4">
+          <label htmlFor="diagram-description" className="mb-2 block text-xs font-medium text-neutral-300">Create or refine with AI</label>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+            <textarea id="diagram-description" value={input} onChange={event => setInput(event.target.value)} disabled={loading} maxLength={4000} rows={2} placeholder="Describe a diagram, or ask for a change to the current code…" className="min-w-0 flex-1 resize-y rounded-lg border border-white/15 bg-black/20 p-3 text-sm outline-none focus:border-indigo-400" />
+            <button type="submit" disabled={loading || !input.trim()} className="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-500 px-4 py-3 text-sm hover:bg-indigo-400 disabled:opacity-40">{loading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}{loading ? 'Generating…' : 'Generate diagram'}</button>
+          </div>
+          {loading && <p role="status" className="mt-2 text-xs text-indigo-300">Generating a diagram from your description…</p>}
+          {error && <p role="alert" className="mt-2 text-sm text-red-300">{error}</p>}
+        </form>
       </div>
-
-
     </section>
   );
 }

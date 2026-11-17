@@ -5,7 +5,7 @@ import mermaid from "mermaid";
 
 mermaid.initialize({ startOnLoad: false, theme: "dark", securityLevel: "strict", suppressErrorRendering: true });
 
-export default function MermaidChart({ code }: { code: string }) {
+export default function MermaidChart({ code, className = "flex h-[480px] flex-col sm:h-[560px]" }: { code: string; className?: string }) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const drag = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
@@ -33,6 +33,7 @@ export default function MermaidChart({ code }: { code: string }) {
     setError("");
     setRendering(true);
     const id = `diagram-${crypto.randomUUID()}`;
+    if (!code.trim()) { setRendering(false); return; }
     mermaid.render(id, code).then(({ svg }) => {
       if (cancelled) return;
       container.innerHTML = svg;
@@ -47,7 +48,7 @@ export default function MermaidChart({ code }: { code: string }) {
       }
       fit();
     }).catch(() => {
-      if (!cancelled) setError("This code could not be rendered. Correct the Mermaid syntax and update the preview.");
+      if (!cancelled) setError("This code could not be rendered. Correct the Mermaid syntax to update the live preview.");
     }).finally(() => {
       if (!cancelled) setRendering(false);
     });
@@ -78,10 +79,17 @@ export default function MermaidChart({ code }: { code: string }) {
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
   };
 
+  const downloadSvg = () => {
+    const svg = containerRef.current?.querySelector("svg");
+    if (!svg || error || rendering) return;
+    const url = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(svg)], { type: "image/svg+xml;charset=utf-8" }));
+    const link = document.createElement("a"); link.href = url; link.download = "sophianet-diagram.svg"; link.click(); URL.revokeObjectURL(url);
+  };
+
   return (
-    <div className="flex h-[480px] flex-col sm:h-[560px]">
+    <div className={className}>
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 px-4 py-3">
-        <span className="text-sm text-neutral-300">Preview</span>
+        <button type="button" onClick={downloadSvg} disabled={!code.trim() || !!error || rendering} className="rounded border border-white/15 px-2.5 py-1 text-xs text-neutral-300 hover:bg-white/5 disabled:opacity-30">Export SVG</button>
         <div className="flex items-center gap-2">
           <button type="button" aria-label="Zoom out" onClick={() => changeZoom(1 / 1.2)} className="rounded border border-white/20 px-3 py-1 hover:bg-white/10">−</button>
           <output className="w-12 text-center text-xs text-neutral-400" aria-label="Zoom level">{Math.round(zoom * 100)}%</output>
@@ -100,6 +108,7 @@ export default function MermaidChart({ code }: { code: string }) {
         }}
         onPointerUp={stopDrag} onPointerCancel={stopDrag} onLostPointerCapture={() => { drag.current = null; }}>
         <div ref={containerRef} className="absolute left-0 top-0 origin-top-left" style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})` }} />
+        {!code.trim() && <p className="absolute inset-x-4 top-1/2 text-center text-sm text-neutral-500">Write Mermaid code or describe a diagram below.</p>}
         {rendering && <p role="status" className="absolute inset-x-4 top-4 rounded-lg bg-slate-950 p-3 text-sm text-neutral-300">Rendering preview…</p>}
         {error && <p role="alert" className="absolute inset-x-4 top-4 rounded-lg bg-slate-950 p-3 text-sm text-red-300">{error}</p>}
       </div>
