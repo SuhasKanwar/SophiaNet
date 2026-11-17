@@ -160,10 +160,6 @@ export default function StudioTool() {
           A topic becomes a practice session. Choose how you want to learn, then
           let AI prepare the material.
         </p>
-        <span className="inline-flex items-center gap-2 rounded-full border border-indigo-400/20 bg-indigo-400/5 px-3 py-1.5 text-xs text-indigo-200">
-          <Sparkles size={13} />
-          Powered by NVIDIA AI
-        </span>
       </div>
       <div
         role="group"
