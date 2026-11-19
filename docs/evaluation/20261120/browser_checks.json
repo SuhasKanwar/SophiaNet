@@ -1,0 +1,186 @@
+{
+  "recorded_at": "2026-11-19T19:51:36.049Z",
+  "environment": "Local Next.js dev server, real backend and PostgreSQL fixture account",
+  "authentication": "Short-lived JWT signed with existing local NextAuth secret; real Google OAuth login NOT evaluated",
+  "landing_summary": {
+    "http_status": 200,
+    "elapsed_seconds": 8.174,
+    "reference": [
+      "12",
+      "Nila",
+      "Tuesday/Tuesdays"
+    ],
+    "command": "summarize",
+    "saved": true
+  },
+  "command_picker": {
+    "offered": [
+      "agent-battleground",
+      "summarize",
+      "research",
+      "quiz",
+      "flashcards"
+    ],
+    "desktop_keyboard_selection": "/summarize ",
+    "desktop_horizontal_overflow": false
+  },
+  "checks": {
+    "records": [
+      {
+        "test": "unknown-command",
+        "http_status": 400,
+        "expected_status": 400,
+        "passed": true,
+        "elapsed_seconds": 0.31189999999850987,
+        "body": {
+          "success": false,
+          "message": "Invalid request data",
+          "error": [
+            {
+              "code": "invalid_value",
+              "values": [
+                "agent-battleground",
+                "summarize",
+                "research",
+                "quiz",
+                "flashcards"
+              ],
+              "path": [
+                "command"
+              ],
+              "message": "Invalid option: expected one of \"agent-battleground\"|\"summarize\"|\"research\"|\"quiz\"|\"flashcards\""
+            }
+          ]
+        }
+      },
+      {
+        "test": "ownership",
+        "http_status": 404,
+        "expected_status": 404,
+        "passed": true,
+        "elapsed_seconds": 0.40470000000298023,
+        "body": {
+          "success": false,
+          "message": "Conversation not found"
+        }
+      },
+      {
+        "test": "prompt-guard",
+        "http_status": 403,
+        "expected_status": 403,
+        "passed": true,
+        "elapsed_seconds": 6.29689999999851,
+        "body": {
+          "success": false,
+          "message": "This request was blocked by prompt safety checks. Rephrase it for a safe, legitimate task."
+        }
+      }
+    ],
+    "historyUnchanged": true,
+    "history": {
+      "success": true,
+      "message": "Messages retrieved successfully",
+      "data": [
+        {
+          "id": "2f5be262-3cd2-484f-9bc4-2b954d289656",
+          "type": "text",
+          "conversationId": "2cdb8746-7bd2-4194-84c6-636dfc39812b",
+          "sender": "user",
+          "model": null,
+          "content": "The fictional Lumen workshop has 12 students. Its mentor is Nila. Sessions occur on Tuesday.",
+          "imageUrl": null,
+          "performanceMetrics": null,
+          "createdAt": "2026-11-19T19:47:14.426Z",
+          "updatedAt": "2026-11-19T19:47:14.426Z"
+        },
+        {
+          "id": "a553df2c-324c-4dbf-bda5-0382ed2be2e3",
+          "type": "text",
+          "conversationId": "2cdb8746-7bd2-4194-84c6-636dfc39812b",
+          "sender": "bot",
+          "model": "nvidia",
+          "content": "# Lumen Workshop Summary\n\n## Overview\nThe Lumen workshop is a fictional educational setting with 12 students guided by mentor Nila. Sessions are scheduled to occur on Tuesdays.\n\n## Key Points\n- The workshop has exactly 12 students enrolled\n- Nila serves as the mentor/instructor\n- Regular sessions are held on Tuesdays\n\n## Limitations and Open Questions\n- No information is provided about the workshop's subject matter or curriculum\n- Duration or frequency of Tuesday sessions is unspecified\n- No details about student backgrounds, goals, or progress\n- No information about the workshop's history, location, or format (in-person/online)\n- No description of teaching methods or assessment approaches\n- The fictional nature of the workshop means real-world applicability is limited\n\nThe source text provides only basic structural information about this fictional educational setting, leaving many practical details unaddressed.",
+          "imageUrl": null,
+          "performanceMetrics": {
+            "latency_ms": 1885.51
+          },
+          "createdAt": "2026-11-19T19:47:14.727Z",
+          "updatedAt": "2026-11-19T19:47:14.727Z"
+        }
+      ]
+    }
+  },
+  "persistedAfterReload": true,
+  "mobile": {
+    "wrappedSelection": "/flashcards ",
+    "overflow": false
+  },
+  "tool_pages": [
+    {
+      "tool": "studio",
+      "status": 200,
+      "url": "http://localhost:3001/chatbot/t/studio",
+      "mainLandmarks": 2,
+      "bodyCharacters": 1121,
+      "horizontalOverflow": false
+    },
+    {
+      "tool": "research-studio",
+      "status": 200,
+      "url": "http://localhost:3001/chatbot/t/research-studio",
+      "mainLandmarks": 2,
+      "bodyCharacters": 788,
+      "horizontalOverflow": false
+    },
+    {
+      "tool": "diagrams-tool",
+      "status": 200,
+      "url": "http://localhost:3001/chatbot/t/diagrams-tool",
+      "mainLandmarks": 2,
+      "bodyCharacters": 411,
+      "horizontalOverflow": false
+    },
+    {
+      "tool": "notes-tool",
+      "status": 200,
+      "url": "http://localhost:3001/chatbot/t/notes-tool",
+      "mainLandmarks": 2,
+      "bodyCharacters": 411,
+      "horizontalOverflow": false
+    },
+    {
+      "tool": "youtube-video-tool",
+      "status": 200,
+      "url": "http://localhost:3001/chatbot/t/youtube-video-tool",
+      "mainLandmarks": 2,
+      "bodyCharacters": 502,
+      "horizontalOverflow": false
+    },
+    {
+      "tool": "image-filter-tool",
+      "status": 200,
+      "url": "http://localhost:3001/chatbot/t/image-filter-tool",
+      "mainLandmarks": 2,
+      "bodyCharacters": 341,
+      "horizontalOverflow": false
+    }
+  ],
+  "findings": [
+    "All six tool pages expose two main landmarks; this is an accessibility issue, not a passing accessibility audit.",
+    "Route rendering checks do not independently test every tool interaction.",
+    "UI probes are outside the 80-attempt API run; static page probes overlapped part of the separately paced run."
+  ],
+  "static_checks": {
+    "typescript": true,
+    "chat_commands_and_error_forwarding": true,
+    "tool_session_state": true
+  },
+  "unauthenticated_request": {
+    "status": 401,
+    "body": {
+      "success": false,
+      "message": "Unauthorized"
+    }
+  },
+  "fixture_cleanup": "Temporary PostgreSQL user and cascaded conversations removed; session cookie cleared."
+}
