@@ -116,7 +116,7 @@ export async function POST(request: Request) {
           content: validated.content
         }
       });
-  
+
       const botMessage = await tx.chat.create({
         data: {
           conversationId: validated.conversationId,
@@ -130,7 +130,7 @@ export async function POST(request: Request) {
         where: { id: validated.conversationId },
         data: { lastUpdated: new Date() }
       });
-  
+
       return { userMessage, botMessage };
     });
 
