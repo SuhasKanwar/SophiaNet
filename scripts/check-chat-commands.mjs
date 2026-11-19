@@ -7,6 +7,7 @@ for (const id of CHAT_COMMAND_IDS) {
 assert.deepEqual(parseChatCommand('ordinary chat'), { command: null, content: 'ordinary chat' });
 assert.throws(() => parseChatCommand('/unknown hi'));
 assert.throws(() => parseChatCommand(`/research ${'x'.repeat(501)}`));
+assert.equal(parseChatCommand('/summarize First line\n\nSecond line').content, 'First line\n\nSecond line');
 console.log('Chat command parsing checks passed');
 const { aiErrorResponse } = await import('../src/lib/ai-error.ts');
 for (const status of [403, 503]) {
