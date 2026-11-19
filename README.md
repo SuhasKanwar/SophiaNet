@@ -83,7 +83,7 @@ Use this single summary table for the literature-review slide. The [ten-paper ca
 | 7 | CrewAI + ADK only | Both exist, alongside LangGraph. **Pending:** backend migration; no extra browser agent framework |
 | 8 | Guardrails and validation callbacks | Command validation, ownership checks and backend input filter exist. **Pending:** tool-return/source/output callbacks |
 | 9 | Tracing/provenance | Paper links and final chat persistence exist. **Pending:** durable correlated run/trace/event linkage |
-| 10 | Multiple-run quality/time/cost evaluation | **Pending:** dataset, raw runs, boxplots and per-agent metrics; demos are not a benchmark |
+| 10 | Multiple-run quality/time/cost evaluation | **Current-system evaluation recorded:** 40 cases/120 live API attempts and [browser receipts](docs/evaluation/20261120/README.md). The balanced architecture comparison and full internal per-agent tracing remain pending |
 | 11 | Cloud deployment | **Planned on AWS:** hosted app, real OAuth, streaming and isolation acceptance evidence |
 
 ## Current request flow
@@ -184,15 +184,15 @@ The Next.js configuration currently ignores TypeScript/lint errors during builds
 
 ## Validation and evaluation plan
 
-Previously recorded functional checks covered five commands, authenticated local handoff/persistence, research links, three streamed debate roles, blocked prompts without history changes and desktop/mobile keyboard selection. Backend documentation records 54 tests and live NVIDIA calls. These are historical functional receipts; this README update does not rerun them or establish real OAuth/AWS acceptance.
+The [current browser evaluation](docs/evaluation/20261120/README.md) records real summary handoff/persistence, invalid-command and guard rejection, reload, mobile keyboard behavior and six tool routes. Backend/scorer checks pass 62 tests; 120 live API attempts cover a 40-case suite. These are current-system receipts, not real OAuth login, complete accessibility, AWS acceptance or a completed architecture comparison.
 
-The controlled study is **planned**: 40 labeled cases = **5 personas × 2 prompt structures × 4 task families**. Personas: novice, advanced learner, educator, time-constrained researcher and adversarial user. Structures: direct brief and ReAct-style action/observation instructions. Families: document questions, scholarly research, scripts and structured study artifacts. Include matched benign/synthetic attack variants with expected safety decisions.
+The balanced architecture-comparison study remains **planned**: 40 labeled cases = **5 personas × 2 prompt structures × 4 task families**. Personas: novice, advanced learner, educator, time-constrained researcher and adversarial user. Structures: direct brief and ReAct-style action/observation instructions. Families: document questions, scholarly research, scripts and structured study artifacts. Include matched benign/synthetic attack variants with expected safety decisions.
 
 Use the same cases for **3 architectures × 2 messaging patterns (Blackboard/P2P) = 240 end-to-end runs, 40 per configuration**. Only ADK/CrewAI orchestrate these variants. Blackboard remains mandatory in the delivered system. Freeze model, tools, evidence snapshots, budgets and rubrics; randomize ordering, tag cold/warm starts/concurrency and retain failures. Replicate a subset to distinguish stochastic variation from case variation.
 
 Dataset records need exact prompts, persona/task IDs, template/source versions, reference answers, expected sources/schema/safety outcomes. Raw runs need outputs, agent/tool events, trace IDs, per-agent/system duration, first visible event, usage, retries, status and dated cost inputs. Judge correctness/citations against references/human rubrics; disclose any supplementary LLM judge and its agreement with reviewed cases. Unit counts, prompt overlap and self-ratings do not establish quality.
 
-Planned results include latency/cost boxplots by architecture/messaging, sample counts, failure rates, agent-duration/error heat maps and case-level provenance. No labeled 40-case dataset, benchmark CSV, evaluation dashboard, plots or architecture ranking is claimed as completed. Screenshot evidence must come from real runs with environment, run/case ID and date.
+Planned results include latency/cost boxplots by architecture/messaging, sample counts, failure rates, agent-duration/error heat maps and case-level provenance. A separate current-system 40-case dataset, CSV/raw results and latency plots are now stored in the microservice repository. The balanced architecture/persona study, evaluation dashboard and architecture ranking remain incomplete. Screenshot evidence must come from real runs with environment, run/case ID and date.
 
 Cost estimates include all model/guard/router/manager calls, token rates or explicit unknowns, tools, compute duration, idle services, ALB/NAT, RDS, storage and observability. Report cost per attempted/successful run and total study cost. Free inference quotas do not mean free AWS deployment; no dollar values or timing advantage are invented.
 
@@ -261,3 +261,7 @@ Team identities/enrollment numbers and completed individual contributions were n
 Report layout: **1 Introduction (p.1); 2 Problem Statement (pp.2–3); 3 Literature Review (pp.4–6); 4 Methodology (pp.8–16); 5 Technology Stack (p.17); 6 Experimental Results (pp.18–25); 7 Team Responsibility/Self-Contribution Matrix (p.26); 8 Conclusions (p.27)**. Methodology covers agent derivation, orchestration, messaging, MCP/A2A, security, validation and AWS diagrams. Results require actual outputs, snapshots, comparisons and failures; these page ranges describe the supplied layout, not completed slides/report or experiments.
 
 The current outcome is an integrated local learning/research interface with explicit limitations. Required completion evidence is the CrewAI/ADK-only backend, real Blackboard/MCP/A2A interactions, callback observability, controlled experiments and an accepted AWS deployment. References are linked at claims and indexed in the [research collection](docs/research/README.md).
+
+## Recorded evaluation
+
+[Browser receipts, actual screenshots and API summary](docs/evaluation/20261120/README.md) accompany 120 live API attempts over 40 cases. The microservice repository holds the authoritative frozen inputs and raw results; this repository stores the web evidence and a generated comparison summary. Paced execution passed 36/40 task checks, while the initial two-worker run passed 42/80 under substantial quota failures. These are acceptance checks rather than general accuracy; unknown costs and untested quality dimensions remain explicit.

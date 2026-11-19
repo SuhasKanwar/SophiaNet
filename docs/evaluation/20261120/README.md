@@ -25,3 +25,16 @@ TypeScript, command/error-forwarding checks and retained-tool-state checks passe
 From `web/`, run `node --env-file=.env scripts/evaluation-fixture.mjs start` with the local web/API services running. The helper requires `psql`, uses an IPv4 PostgreSQL connection and prints no credentials. Open `http://localhost:3003` in the local test browser, execute the interactions above and save the resulting public responses/screenshots. Run `node --env-file=.env scripts/evaluation-fixture.mjs cleanup` and stop the helper afterward. This is a local test-session helper, not an application authentication bypass or production endpoint.
 
 The independently versioned microservice repository contains `evaluation/datasets/system-v1.jsonl`, source attribution, repeatable live runner, raw observations, reports and plots. This browser receipt does not replace those dataset results or establish AWS deployment readiness.
+
+## Recorded API protocols
+
+The backend dataset contains 40 cases: eight fixed GSM8K test questions plus 32 synthetic fixtures. Each protocol uses the same frozen inputs. Counts below use the documented Tuesday/Tuesdays scoring correction while preserving original results.
+
+| Protocol | Attempts | Passed task checks | HTTP 5xx/transport failures | Wall seconds |
+| --- | ---: | ---: | ---: | ---: |
+| 2 worker(s), 0s interval | 80 | 42 | 35 | 143.058 |
+| 1 worker(s), 6.0s interval | 40 | 36 | 2 | 356.406 |
+
+![Measured API protocol latency](api_protocol_latency_boxplots.png)
+
+[Generated API summary](api_protocol_comparison.json) is mirrored from the microservice evaluation. These are heterogeneous acceptance-check rates, not general accuracy scores. Different traffic/time windows, two repeats versus one, and non-isolated local conditions prevent causal architecture claims. Costs are unknown, not zero. The authoritative backend inputs, raw responses, scoring errata and reports are under `microservice/evaluation/results/`; no outputs were mocked or discarded.
