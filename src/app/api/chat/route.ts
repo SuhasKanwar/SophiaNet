@@ -1,3 +1,4 @@
+import { aiErrorResponse } from "@/lib/ai-error";
 import { getServerSession, User } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/options";
 import { prisma } from "@/lib/prisma";
@@ -131,13 +132,16 @@ export async function POST(request: Request) {
                     { status: 400 }
                 );
             }
-            body = { conversationId, content };
+            body = { conversationId, content, command: form.get("command") ?? undefined };
         } else {
             body = await request.json();
             sessionHistory = body?.history ?? [];
         }
 
         const validatedData = sendMessageSchema.parse(body);
+        if (validatedData.command === "agent-battleground" || (validatedData.command && files.length)) {
+            return Response.json({ success: false, message: "Use the debate endpoint for battleground; slash commands accept text only." }, { status: 400 });
+        }
 
         const conversation = await prisma.conversation.findFirst({
             where: { id: validatedData.conversationId, userId: (user as any).id }
@@ -146,19 +150,6 @@ export async function POST(request: Request) {
         if (!conversation) {
             return Response.json({ success: false, message: "Conversation not found" }, { status: 404 });
         }
-
-        const userMessage = await prisma.chat.create({
-            data: {
-                conversationId: validatedData.conversationId,
-                sender: 'user',
-                content: validatedData.content
-            }
-        });
-
-        await prisma.conversation.update({
-            where: { id: validatedData.conversationId },
-            data: { lastUpdated: new Date() }
-        });
 
         const history = Array.isArray(sessionHistory)
             ? sessionHistory.map((m: any) => ({
@@ -189,6 +180,7 @@ export async function POST(request: Request) {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     prompt: validatedData.content,
+                    command: validatedData.command,
                     session_history: history,
                     files: []
                 })
@@ -196,8 +188,7 @@ export async function POST(request: Request) {
         }
 
         if (!msRes.ok) {
-            const errText = await msRes.text().catch(() => "");
-            throw new Error(`Upstream error ${msRes.status}: ${msRes.statusText}${errText ? ` - ${errText}` : ""}`);
+            return aiErrorResponse(msRes, "The AI service could not complete this request.");
         }
 
         const response = await msRes.json();
@@ -209,16 +200,31 @@ export async function POST(request: Request) {
             replyText = "I'm sorry, I couldn't generate a response.";
         }
 
-        const botMessage = await prisma.chat.create({
-            data: {
-                conversationId: validatedData.conversationId,
-                type: imageUrl ? 'image' : 'text',
-                sender: 'bot',
-                model: model,
-                imageUrl: imageUrl,
-                content: replyText || "",
-                performanceMetrics: performanceMetrics || null
-            }
+        const { userMessage, botMessage } = await prisma.$transaction(async tx => {
+            const userMessage = await tx.chat.create({
+                data: {
+                    conversationId: validatedData.conversationId,
+                    sender: 'user',
+                    content: validatedData.content
+                }
+            });
+
+            const botMessage = await tx.chat.create({
+                data: {
+                    conversationId: validatedData.conversationId,
+                    type: imageUrl ? 'image' : 'text',
+                    sender: 'bot',
+                    model: model,
+                    imageUrl: imageUrl,
+                    content: replyText || "",
+                    performanceMetrics: performanceMetrics || null
+                }
+            });
+            await tx.conversation.update({
+                where: { id: validatedData.conversationId },
+                data: { lastUpdated: new Date() }
+            });
+            return { userMessage, botMessage };
         });
 
         return Response.json({

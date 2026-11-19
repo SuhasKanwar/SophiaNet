@@ -1,4 +1,5 @@
 import z from 'zod';
+import { CHAT_COMMAND_IDS } from '@/lib/chat-command';
 import { ToolVariant as ToolVariantType } from '@/types/tools';
 
 export const createConversationSchema = z.object({
@@ -16,6 +17,7 @@ export const deleteConversationSchema = z.object({
 });
 
 export const sendMessageSchema = z.object({
+    command: z.enum(CHAT_COMMAND_IDS).optional(),
     conversationId: z.string().uuid(),
     content: z.string().min(1).max(10000)
 });

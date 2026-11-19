@@ -45,7 +45,7 @@ export default function DashboardPage() {
     let parsed;
     try {
       parsed = parseChatCommand(input);
-      if (parsed.command && selectedFiles.length) throw new Error("Remove attachments before using agent battleground.");
+      if (parsed.command && selectedFiles.length) throw new Error("Slash commands support text only. Remove attachments first.");
     } catch (error) { setError(error instanceof Error ? error.message : "Invalid command"); return; }
     setLoading(true);
     setError(null);

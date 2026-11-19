@@ -24,3 +24,4 @@ The outputs of SophiaNet are multifaceted:
 * A structured, dynamic knowledge base integrating human notes with digital media.
 
 **SophiaNet’s vision** is to reimagine how humans interact with knowledge—bridging handwritten memory, digital media, and generative creativity. With applications in **education, research, content creation, and digital archiving**, it positions itself as a **Wisdom Network** for the AI-driven information era.
+See [chat commands and safety](docs/chat_commands_and_safety.md) for the shared command picker, Google ADK summarization, backend guardrails and verified request flow.

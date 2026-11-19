@@ -134,7 +134,7 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
     let parsed;
     try {
       parsed = conversationVariant === "chat" ? parseChatCommand(messageInput) : { content: messageInput, command: null };
-      if (parsed.command && selectedFiles.length) throw new Error("Remove attachments before using agent battleground.");
+      if (parsed.command && selectedFiles.length) throw new Error("Slash commands support text only. Remove attachments first.");
     } catch (error) { setError(error instanceof Error ? error.message : "Invalid command"); return; }
     const isDebate = parsed.command === "agent-battleground";
     setDebateMode(isDebate);
@@ -220,6 +220,7 @@ export default function ChatbotClient({ chatID }: ChatbotClientProps) {
         res = await axios.post("/api/chat", {
           conversationId: chatID,
           content: content,
+          command: parsed.command ?? undefined,
           history: sessionHistory,
         });
       }

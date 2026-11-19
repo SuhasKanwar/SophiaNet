@@ -1,3 +1,4 @@
+import { aiErrorResponse } from "@/lib/ai-error";
 import { getServerSession, User } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/options";
 import { prisma } from "@/lib/prisma";
@@ -74,19 +75,6 @@ export async function POST(request: Request) {
       return Response.json({ success: false, message: "Unsupported tool variant" }, { status: 400 });
     }
 
-    const userMessage = await prisma.chat.create({
-      data: {
-        conversationId: validated.conversationId,
-        sender: 'user',
-        content: validated.content
-      }
-    });
-
-    await prisma.conversation.update({
-      where: { id: validated.conversationId },
-      data: { lastUpdated: new Date() }
-    });
-
     const history = Array.isArray(sessionHistory)
       ? sessionHistory
       : [];
@@ -113,22 +101,37 @@ export async function POST(request: Request) {
     }
 
     if (!msRes.ok) {
-      const errText = await msRes.text().catch(() => "");
-      throw new Error(`Upstream error ${msRes.status}: ${msRes.statusText}${errText ? ` - ${errText}` : ""}`);
+      return aiErrorResponse(msRes, "The tool service could not complete this request.");
     }
 
     const response = await msRes.json();
     const model = response.model || "unknown";
     const replyText: string = response.response || "I'm sorry, I couldn't generate a response.";
 
-    const botMessage = await prisma.chat.create({
-      data: {
-        conversationId: validated.conversationId,
-        type: 'text',
-        sender: 'bot',
-        model,
-        content: replyText
-      }
+    const { userMessage, botMessage } = await prisma.$transaction(async tx => {
+      const userMessage = await tx.chat.create({
+        data: {
+          conversationId: validated.conversationId,
+          sender: 'user',
+          content: validated.content
+        }
+      });
+  
+      const botMessage = await tx.chat.create({
+        data: {
+          conversationId: validated.conversationId,
+          type: 'text',
+          sender: 'bot',
+          model,
+          content: replyText
+        }
+      });
+      await tx.conversation.update({
+        where: { id: validated.conversationId },
+        data: { lastUpdated: new Date() }
+      });
+  
+      return { userMessage, botMessage };
     });
 
     return Response.json({

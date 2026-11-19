@@ -1,3 +1,4 @@
+import { aiErrorResponse } from "@/lib/ai-error";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { authOptions } from "../auth/[...nextauth]/options";
@@ -44,7 +45,7 @@ export async function POST(request: Request) {
       cache: "no-store",
     });
     if (!response.ok) {
-      return Response.json({ message: "Diagram generation failed. Please try again." }, { status: 502 });
+      return aiErrorResponse(response, "Diagram generation failed. Please try again.");
     }
     const data = await response.json();
     if (typeof data.response !== "string" || !data.response.trim()) {

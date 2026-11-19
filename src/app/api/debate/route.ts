@@ -1,3 +1,4 @@
+import { aiErrorResponse } from "@/lib/ai-error";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { authOptions } from "../auth/[...nextauth]/options";
@@ -20,6 +21,7 @@ export async function POST(request: Request) {
     body: JSON.stringify({ prompt: content, command: "agent-battleground", session_history: history.reverse().map(m => ({ role: m.sender === 'user' ? 'user' : 'assistant', content: m.content || "" })) }),
     signal: AbortSignal.any([request.signal, AbortSignal.timeout(310000)]),
   }).catch(() => null);
+  if (upstream && !upstream.ok) return aiErrorResponse(upstream, "Debate service unavailable");
   if (!upstream?.ok || !upstream.body) return Response.json({ message: "Debate service unavailable" }, { status: 502 });
   const reader = upstream.body.getReader();
   const encoder = new TextEncoder();

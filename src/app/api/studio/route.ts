@@ -1,3 +1,4 @@
+import { aiErrorResponse } from "@/lib/ai-error";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { authOptions } from "../auth/[...nextauth]/options";
@@ -37,11 +38,7 @@ export async function POST(request: Request) {
         cache: "no-store",
       },
     );
-    if (!response.ok)
-      return Response.json(
-        { message: "Generation failed. Please try again." },
-        { status: 502 },
-      );
+    if (!response.ok) return aiErrorResponse(response, "Generation failed. Please try again.");
     return Response.json(await response.json());
   } catch {
     return Response.json(
