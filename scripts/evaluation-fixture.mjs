@@ -8,6 +8,7 @@ import { encode } from 'next-auth/jwt';
 const manifest='/tmp/sophianet-evaluation-fixture.json';
 const mode=process.argv[2];
 if (!['start','cleanup'].includes(mode)) throw new Error('Use start or cleanup');
+if(mode==='start' && fs.existsSync(manifest)) throw new Error('Clean up the existing evaluation fixture before creating another');
 const id=mode==='start' ? `sophianet-eval-${Date.now()}` : JSON.parse(fs.readFileSync(manifest,'utf8')).id;
 if (!/^sophianet-eval-\d+$/.test(id)) throw new Error('Invalid fixture identifier');
 const url=new URL(process.env.DATABASE_URL);
